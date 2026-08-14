@@ -689,7 +689,7 @@ function simTick(){
     stopSim();
     // Calculer le diagnostic TOUJOURS, quel que soit l'onglet actif
     setTimeout(()=>{
-      buildDiag();
+      setTimeout(buildDiag, 600);
       // Si on est sur M1, switcher automatiquement sur M2 pour afficher le rapport
       if(activePanel==='m1'){
         sw('m2');
