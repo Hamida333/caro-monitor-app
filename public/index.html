@@ -213,6 +213,9 @@ main{padding:12px 16px;}
     <span class="age-info">ans</span>
   </div>
   <span id="fcmax-info" style="font-size:10px;color:var(--text2);">FCmax: 180 bpm</span>
+  <button class="btn-ctrl btn-start" id="btn-diag" onclick="buildDiag();sw('m2');setTimeout(()=>{document.getElementById('diag-panel').scrollIntoView({behavior:'smooth'})},200);" style="margin-left:auto;background:rgba(86,211,100,.15);color:var(--green);border-color:rgba(86,211,100,.3);">
+    📋 Rapport diagnostic
+  </button>
 </div>
 
 <div class="tabs">
@@ -683,9 +686,23 @@ function redrawAll(){
 // ========== TICK ==========
 function simTick(){
   if(tick>=TOTAL){
-    // Traiter le dernier point avant d'arrêter
     stopSim();
-    setTimeout(()=>{ if(activePanel==='m2') buildDiag(); }, 200);
+    // Calculer le diagnostic TOUJOURS, quel que soit l'onglet actif
+    setTimeout(()=>{
+      buildDiag();
+      // Si on est sur M1, switcher automatiquement sur M2 pour afficher le rapport
+      if(activePanel==='m1'){
+        sw('m2');
+        // Petit délai pour que le panel soit visible avant de scroller
+        setTimeout(()=>{
+          const dp=document.getElementById('diag-panel');
+          if(dp) dp.scrollIntoView({behavior:'smooth',block:'start'});
+        }, 300);
+      } else {
+        const dp=document.getElementById('diag-panel');
+        if(dp) dp.scrollIntoView({behavior:'smooth',block:'start'});
+      }
+    }, 400);
     return;
   }
   const t=tick/60;
@@ -841,6 +858,12 @@ function updateMetrics(i){
 
 // ========== DIAGNOSTIC COMPLET ==========
 function buildDiag(){
+  // Vérifier que les données existent
+  if(!SBP || SBP.length < 10){
+    const cm=document.getElementById('dg-cm');
+    if(cm){ cm.className='cm warn'; cm.textContent='⚠ Données insuffisantes — lancez la simulation au moins 1 minute.'; }
+    return;
+  }
   const r=R();
   const ri=Array.from({length:180},(_,i)=>i);
   const ei=Array.from({length:540},(_,i)=>i+180);
