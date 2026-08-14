@@ -563,12 +563,16 @@ function generateAll(){
   SBP=[];DBP=[];HR=[];PIEZO=[];BPW=[];PTT=[];VSYS=[];RA=[];RS=[];SIarr=[];RIarr=[];
   for(let i=0;i<TOTAL;i++){
     const t=i/60, p=ph(t);
-    const sbpRise=t<=3?0:(r.sbpPeak-r.sbp)*(1-Math.exp(-(t-3)/1.5));
-    const sbp=r.sbp+sbpRise+4*Math.sin(t*.35+0.8)+(seed(i+2)-.5)*2.5;
+    // Utilise TOUJOURS sbp0/dbp0/hr0 — valeurs calibrées par l'utilisateur
+    // r.sbpPeak est l'amplitude de montée à l'effort (delta), pas la valeur absolue
+    const deltaEffort = r.sbpPeak - r.sbp; // amplitude de montée bibliographique
+    const sbpRise=t<=3?0:deltaEffort*(1-Math.exp(-(t-3)/1.5));
+    const sbp=sbp0+sbpRise+4*Math.sin(t*.35+0.8)+(seed(i+2)-.5)*2.5;
     const dbpDrop=t<=3?0:r.dbpDrop*(1-Math.exp(-(t-3)/3));
-    const dbp=r.dbp+dbpDrop+(seed(i+3)-.5)*1.5;
-    const hrRise=t<=3?0:(r.hrPeak-r.hr)*(1-Math.exp(-(t-3)/r.hrTau));
-    const hr=r.hr+hrRise+(seed(i+4)-.5)*1.5;
+    const dbp=dbp0+dbpDrop+(seed(i+3)-.5)*1.5;
+    const hrDelta = r.hrPeak - r.hr; // delta FC effort
+    const hrRise=t<=3?0:hrDelta*(1-Math.exp(-(t-3)/r.hrTau));
+    const hr=hr0+hrRise+(seed(i+4)-.5)*1.5;
     const bpm=hr, cyc=60/bpm, pos=(t%cyc)/cyc;
     const amp=0.25+0.42*p;
     let pz=0;
