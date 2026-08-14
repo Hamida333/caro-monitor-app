@@ -383,7 +383,13 @@ main{padding:12px 16px;}
 
 <!-- DIAGNOSTIC -->
 <div class="diag-panel" id="diag-panel">
-  <h2>📋 Rapport diagnostique — <span id="dg-label">♀ Femme 40 ans</span></h2>
+  <h2 style="display:flex;align-items:center;justify-content:space-between;">
+    <span>📋 Rapport diagnostique — <span id="dg-label">♀ Femme 40 ans</span></span>
+    <button onclick="buildDiag()" style="font-size:11px;padding:4px 12px;border-radius:6px;
+      background:rgba(88,166,255,.15);color:var(--blue);border:1px solid rgba(88,166,255,.3);cursor:pointer;">
+      ↻ Générer rapport
+    </button>
+  </h2>
   <div class="diag-grid">
     <div class="diag-card">
       <h4>Hémodynamique</h4>
@@ -460,7 +466,7 @@ main{padding:12px 16px;}
 
 <script>
 // ========== CONSTANTES ==========
-const TOTAL=720, D=0.050, WINDOW=120;
+const TOTAL=721, D=0.050, WINDOW=120; // 721 pour inclure le point 12:00 exact
 let sex='F', age=40, alpha=0.50;
 let sbp0=118,dbp0=72,hr0=68,ht0=165,diam0=6.1;
 let calibLocked=false; // true après premier clic "Appliquer"
@@ -676,7 +682,12 @@ function redrawAll(){
 
 // ========== TICK ==========
 function simTick(){
-  if(tick>=TOTAL){ stopSim(); if(activePanel==='m2') buildDiag(); return; }
+  if(tick>=TOTAL){
+    // Traiter le dernier point avant d'arrêter
+    stopSim();
+    setTimeout(()=>{ if(activePanel==='m2') buildDiag(); }, 200);
+    return;
+  }
   const t=tick/60;
   if(activePanel==='m1'){
     pushPoint('c1p',0,PIEZO[tick]); pushPoint('c1b',0,BPW[tick]);
