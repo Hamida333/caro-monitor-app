@@ -3,143 +3,181 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Monitoring Carotidien Piézoélectrique — 12 min v2</title>
+<title>Monitoring Carotidien Piézoélectrique — v3 H/F</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
-:root {
-  --bg:#0f1117; --bg2:#181c27; --bg3:#1e2335; --border:#2a3050;
-  --text:#e2e8f0; --text2:#8892b0;
-  --blue:#4da6ff; --orange:#ff7043; --green:#66bb6a;
-  --purple:#ab47bc; --teal:#26c6da; --red:#ef5350; --yellow:#ffd54f;
+:root{
+  --bg:#0d1117;--bg2:#161b22;--bg3:#1c2128;--border:#30363d;
+  --text:#c9d1d9;--text2:#8b949e;
+  --blue:#58a6ff;--orange:#f78166;--green:#56d364;
+  --purple:#bc8cff;--teal:#39d353;--red:#f85149;--yellow:#e3b341;
+  --pink:#f778ba;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;}
 
-header{background:var(--bg2);border-bottom:1px solid var(--border);padding:11px 20px;
+/* HEADER */
+header{background:var(--bg2);border-bottom:1px solid var(--border);padding:10px 18px;
   display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
-header h1{font-size:14px;font-weight:600;}
-header .sub{font-size:10px;color:var(--text2);margin-top:2px;}
-.status-bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
-.phase-badge{padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;
-  background:rgba(77,166,255,.15);color:var(--blue);border:1px solid rgba(77,166,255,.3);transition:all .4s;}
-.phase-badge.effort{background:rgba(255,112,67,.15);color:var(--orange);border-color:rgba(255,112,67,.3);}
-.elapsed{font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;}
-.progress-wrap{flex:1;min-width:160px;}
-.progress-track{height:5px;background:var(--bg3);border-radius:3px;position:relative;overflow:hidden;}
-.progress-fill{height:100%;border-radius:3px;transition:width .5s linear;
+.h-left h1{font-size:14px;font-weight:600;color:var(--text);}
+.h-left .sub{font-size:10px;color:var(--text2);margin-top:2px;}
+.status-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.phase-badge{padding:3px 11px;border-radius:20px;font-size:11px;font-weight:600;
+  background:rgba(88,166,255,.12);color:var(--blue);border:1px solid rgba(88,166,255,.25);transition:all .4s;}
+.phase-badge.effort{background:rgba(247,129,102,.12);color:var(--orange);border-color:rgba(247,129,102,.25);}
+.elapsed{font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--text);}
+.prog-wrap{flex:1;min-width:140px;}
+.prog-track{height:4px;background:var(--bg3);border-radius:2px;position:relative;overflow:hidden;}
+.prog-fill{height:100%;border-radius:2px;transition:width .5s linear;
   background:linear-gradient(90deg,var(--blue) 25%,var(--orange));}
-.progress-marker{position:absolute;left:25%;top:-1px;height:7px;width:2px;background:var(--text2);}
+.prog-mark{position:absolute;left:25%;top:-1px;height:6px;width:2px;background:var(--text2);}
 .rec-dot{width:7px;height:7px;border-radius:50%;background:var(--red);animation:blink 1s infinite;}
 .rec-hidden{visibility:hidden;}
-@keyframes blink{0%,100%{opacity:1;}50%{opacity:.15;}}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.1;}}
 
-main{padding:14px 18px;}
-.tabs{display:flex;gap:6px;margin-bottom:12px;}
-.tab{padding:5px 15px;border-radius:6px;font-size:12px;font-weight:500;
-  background:var(--bg2);border:1px solid var(--border);color:var(--text2);cursor:pointer;transition:all .15s;}
-.tab.active{background:rgba(77,166,255,.15);color:var(--blue);border-color:rgba(77,166,255,.4);}
+main{padding:12px 16px;}
+
+/* CTRL */
+.ctrl-bar{display:flex;gap:7px;align-items:center;flex-wrap:wrap;
+  background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:8px 14px;margin-bottom:11px;}
+.btn-ctrl{padding:5px 13px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid;transition:all .15s;}
+.btn-start{background:rgba(86,211,100,.12);color:var(--green);border-color:rgba(86,211,100,.3);}
+.btn-pause{background:rgba(227,179,65,.12);color:var(--yellow);border-color:rgba(227,179,65,.3);}
+.btn-reset{background:rgba(248,81,73,.1);color:var(--red);border-color:rgba(248,81,73,.25);}
+.spd-sel{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:4px 7px;border-radius:5px;font-size:11px;}
+.sex-toggle{display:flex;gap:4px;}
+.sex-btn{padding:4px 12px;border-radius:5px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid;transition:all .15s;
+  background:var(--bg3);color:var(--text2);border-color:var(--border);}
+.sex-btn.active-f{background:rgba(247,120,186,.15);color:var(--pink);border-color:rgba(247,120,186,.35);}
+.sex-btn.active-m{background:rgba(88,166,255,.15);color:var(--blue);border-color:rgba(88,166,255,.35);}
+
+/* TABS */
+.tabs{display:flex;gap:5px;margin-bottom:11px;}
+.tab{padding:5px 14px;border-radius:6px;font-size:11px;font-weight:500;
+  background:var(--bg2);border:1px solid var(--border);color:var(--text2);cursor:pointer;}
+.tab.active{background:rgba(88,166,255,.12);color:var(--blue);border-color:rgba(88,166,255,.35);}
 .panel{display:none;}.panel.active{display:block;}
 
-.calib-box{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:11px 15px;margin-bottom:12px;}
-.calib-box h3{font-size:10px;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:9px;}
-.crow{display:flex;flex-wrap:wrap;gap:9px;align-items:flex-end;}
+/* CALIB */
+.calib-box{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:10px;}
+.calib-box h3{font-size:10px;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;}
+.crow{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end;}
 .cf{display:flex;flex-direction:column;gap:3px;}
 .cf label{font-size:10px;color:var(--text2);}
-.cf input[type=number]{width:74px;background:var(--bg3);border:1px solid var(--border);
-  color:var(--text);padding:5px 7px;border-radius:6px;font-size:13px;font-weight:500;}
+.cf input[type=number]{width:72px;background:var(--bg3);border:1px solid var(--border);
+  color:var(--text);padding:4px 7px;border-radius:5px;font-size:12px;font-weight:500;}
 .cf input[type=text]{width:105px;background:var(--bg3);border:1px solid var(--border);
-  color:var(--text);padding:5px 7px;border-radius:6px;font-size:11px;}
-.btn-apply{padding:6px 13px;background:rgba(77,166,255,.15);color:var(--blue);
-  border:1px solid rgba(77,166,255,.35);border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;}
+  color:var(--text);padding:4px 7px;border-radius:5px;font-size:11px;}
+.btn-apply{padding:5px 12px;background:rgba(88,166,255,.12);color:var(--blue);
+  border:1px solid rgba(88,166,255,.3);border-radius:5px;font-size:11px;font-weight:500;cursor:pointer;}
 
-.mg{display:grid;gap:7px;margin-bottom:10px;}
+/* METRICS */
+.mg{display:grid;gap:7px;margin-bottom:9px;}
 .m4{grid-template-columns:repeat(4,1fr);}
 .m3{grid-template-columns:repeat(3,1fr);}
-@media(max-width:600px){.m4{grid-template-columns:repeat(2,1fr);}.m3{grid-template-columns:repeat(2,1fr);}}
-.mc{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:9px 11px;transition:border-color .3s;}
+.m2{grid-template-columns:repeat(2,1fr);}
+@media(max-width:580px){.m4{grid-template-columns:repeat(2,1fr);}.m3{grid-template-columns:repeat(2,1fr);}}
+.mc{background:var(--bg2);border:1px solid var(--border);border-radius:7px;padding:9px 10px;transition:border-color .3s;}
 .mc.alert{border-color:var(--red);}.mc.warn{border-color:var(--yellow);}
 .mc .ml{font-size:10px;color:var(--text2);margin-bottom:2px;}
-.mc .mv{font-size:21px;font-weight:600;color:var(--text);line-height:1;transition:color .3s;}
+.mc .mv{font-size:20px;font-weight:600;color:var(--text);line-height:1;transition:color .3s;}
 .mc.alert .mv{color:var(--red);}.mc.warn .mv{color:var(--yellow);}
 .mc .mu{font-size:10px;color:var(--text2);margin-top:1px;}
+.mc .mref{font-size:9px;color:var(--text2);margin-top:2px;opacity:.7;}
 
-.phase-bar{display:flex;height:5px;border-radius:3px;overflow:hidden;margin-bottom:3px;}
+/* PHASE BAR */
+.phase-bar{display:flex;height:4px;border-radius:2px;overflow:hidden;margin-bottom:3px;}
 .ph-r{background:var(--blue);flex:3;}.ph-e{background:var(--orange);flex:9;}
 .phase-lbl{display:flex;font-size:10px;color:var(--text2);margin-bottom:9px;}
 .phase-lbl span:first-child{flex:3;}.phase-lbl span:last-child{flex:9;}
 
-.leg{display:flex;gap:11px;flex-wrap:wrap;margin-bottom:8px;}
+/* LEGEND */
+.leg{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:7px;}
 .li{display:flex;align-items:center;gap:3px;font-size:10px;color:var(--text2);}
-.ld{width:10px;height:3px;border-radius:2px;}
+.ld{width:10px;height:3px;border-radius:1px;}
 
-.chart-card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;
-  padding:9px 11px 7px;margin-bottom:9px;position:relative;}
-.chart-card .ct{font-size:10px;color:var(--text2);margin-bottom:5px;}
-.chart-phase-cursor{position:absolute;top:26px;left:25%;width:1px;bottom:8px;
-  background:rgba(255,255,255,.1);pointer-events:none;}
-.chart-cursor{position:absolute;top:26px;width:2px;bottom:8px;
-  background:rgba(255,255,255,.45);pointer-events:none;transition:left .4s linear;}
+/* CHARTS */
+.chart-card{background:var(--bg2);border:1px solid var(--border);border-radius:7px;
+  padding:8px 10px 6px;margin-bottom:8px;position:relative;}
+.chart-card .ct{font-size:10px;color:var(--text2);margin-bottom:4px;}
+.chart-phase-cursor{position:absolute;top:24px;left:25%;width:1px;bottom:7px;
+  background:rgba(255,255,255,.08);pointer-events:none;}
+.chart-cursor{position:absolute;top:24px;width:2px;bottom:7px;
+  background:rgba(255,255,255,.4);pointer-events:none;transition:left .4s linear;}
 
-.steno-panel{background:var(--bg2);border:1px solid var(--border);border-radius:10px;
-  padding:11px 15px;margin-bottom:11px;}
+/* STENO */
+.steno-panel{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:10px;}
 .steno-panel h3{font-size:10px;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:7px;}
 .formula{font-size:10px;color:var(--text2);background:var(--bg3);border-left:2px solid var(--border);
   padding:5px 9px;border-radius:0 4px 4px 0;margin-bottom:9px;line-height:1.6;}
-.formula span{color:var(--text);font-weight:500;}
-.sgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;}
-@media(max-width:600px){.sgrid{grid-template-columns:repeat(2,1fr);}}
-.sc{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:7px 9px;}
+.sgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;}
+@media(max-width:580px){.sgrid{grid-template-columns:repeat(2,1fr);}}
+.sc{background:var(--bg3);border:1px solid var(--border);border-radius:5px;padding:7px 9px;}
 .sc .sl{font-size:10px;color:var(--text2);margin-bottom:2px;}
 .sc .sv{font-size:14px;font-weight:600;color:var(--text);}
 .badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:600;}
-.b-ok{background:rgba(102,187,106,.15);color:#66bb6a;border:1px solid rgba(102,187,106,.3);}
-.b-lim{background:rgba(255,213,79,.15);color:#ffd54f;border:1px solid rgba(255,213,79,.3);}
-.b-alert{background:rgba(239,83,80,.15);color:#ef5350;border:1px solid rgba(239,83,80,.3);}
+.b-ok{background:rgba(86,211,100,.12);color:var(--green);border:1px solid rgba(86,211,100,.25);}
+.b-lim{background:rgba(227,179,65,.12);color:var(--yellow);border:1px solid rgba(227,179,65,.25);}
+.b-alert{background:rgba(248,81,73,.12);color:var(--red);border:1px solid rgba(248,81,73,.25);}
 .seuils{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px;}
-.stag{font-size:10px;padding:2px 7px;border-radius:4px;border:1px solid var(--border);color:var(--text2);background:var(--bg3);}
+.stag{font-size:10px;padding:2px 7px;border-radius:3px;border:1px solid var(--border);color:var(--text2);background:var(--bg3);}
 
-.alpha-box{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:11px 15px;margin-bottom:11px;}
+/* ALPHA */
+.alpha-box{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:10px;}
 .alpha-box h3{font-size:10px;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:7px;}
-.arow{display:flex;align-items:center;gap:9px;margin-bottom:5px;}
-.arow label{font-size:10px;color:var(--text2);width:72px;}
+.arow{display:flex;align-items:center;gap:8px;margin-bottom:5px;}
+.arow label{font-size:10px;color:var(--text2);width:70px;}
 .arow input[type=range]{flex:1;accent-color:var(--blue);}
-.aval{font-size:12px;font-weight:600;color:var(--text);width:34px;text-align:right;}
-.formula-live{font-size:11px;color:var(--blue);margin-top:3px;}
+.aval{font-size:12px;font-weight:600;color:var(--text);width:32px;text-align:right;}
 
-.ctrl-bar{display:flex;gap:7px;align-items:center;flex-wrap:wrap;
+/* ===== DIAGNOSTIC PANEL ===== */
+.diag-panel{
   background:var(--bg2);border:1px solid var(--border);border-radius:10px;
-  padding:9px 15px;margin-bottom:12px;}
-.btn-ctrl{padding:5px 14px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid;transition:all .15s;}
-.btn-start{background:rgba(102,187,106,.15);color:var(--green);border-color:rgba(102,187,106,.4);}
-.btn-pause{background:rgba(255,213,79,.15);color:var(--yellow);border-color:rgba(255,213,79,.4);}
-.btn-reset{background:rgba(239,83,80,.1);color:var(--red);border-color:rgba(239,83,80,.3);}
-.speed-sel{background:var(--bg3);border:1px solid var(--border);color:var(--text);
-  padding:4px 7px;border-radius:6px;font-size:11px;}
-
-/* Encart correction physiologique */
-.phys-note{background:rgba(77,166,255,.07);border:1px solid rgba(77,166,255,.2);
-  border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:11px;color:var(--text2);line-height:1.6;}
-.phys-note strong{color:var(--blue);}
+  padding:14px 16px;margin-top:12px;
+}
+.diag-panel h2{font-size:12px;font-weight:600;color:var(--text);margin-bottom:10px;
+  display:flex;align-items:center;gap:6px;}
+.diag-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;}
+@media(max-width:580px){.diag-grid{grid-template-columns:1fr;}}
+.diag-card{background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:10px 12px;}
+.diag-card h4{font-size:10px;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px;}
+.diag-line{display:flex;justify-content:space-between;align-items:center;
+  font-size:11px;color:var(--text);margin-bottom:4px;padding-bottom:4px;border-bottom:1px solid var(--border);}
+.diag-line:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0;}
+.diag-line .dl{color:var(--text2);}
+.diag-line .dv{font-weight:600;}
+.dv.ok{color:var(--green);}.dv.warn{color:var(--yellow);}.dv.alert{color:var(--red);}
+.diag-conclusion{
+  background:var(--bg3);border:1px solid var(--border);border-radius:7px;
+  padding:12px 14px;
+}
+.diag-conclusion h4{font-size:10px;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px;}
+.conc-main{font-size:14px;font-weight:600;margin-bottom:6px;}
+.conc-main.ok{color:var(--green);}.conc-main.warn{color:var(--yellow);}.conc-main.alert{color:var(--red);}
+.conc-detail{font-size:11px;color:var(--text2);line-height:1.6;}
+.conc-reco{font-size:11px;color:var(--blue);margin-top:6px;padding-top:6px;border-top:1px solid var(--border);}
+.sex-ref-note{font-size:10px;color:var(--text2);background:var(--bg3);border-radius:5px;
+  padding:5px 9px;margin-bottom:9px;border-left:2px solid var(--blue);}
 
 .notes{font-size:10px;color:var(--text2);border-left:2px solid var(--border);
-  padding-left:9px;margin-top:9px;line-height:1.7;}
+  padding-left:9px;margin-top:9px;line-height:1.6;}
 </style>
 </head>
 <body>
 
 <header>
-  <div>
-    <h1>🫀 Monitoring Carotidien Piézoélectrique — AlN/Kapton · v2</h1>
-    <div class="sub">F · 40 ans · sans ATCD · Carotide primitive gauche · 12 min (repos 3' + montée 4 étages 9') · Modèle physiologique corrigé</div>
+  <div class="h-left">
+    <h1>🫀 Monitoring Carotidien Piézoélectrique — AlN/Kapton · v3</h1>
+    <div class="sub">Carotide primitive · Protocole 12 min (repos 3' + montée 4 étages 9') · Modèle sexué H/F · Valeurs bibliographiques 2024–2025</div>
   </div>
   <div class="status-bar">
     <div class="rec-dot rec-hidden" id="rec-dot"></div>
     <div class="phase-badge" id="phase-badge">⏸ En attente</div>
     <div class="elapsed" id="elapsed">0:00 / 12:00</div>
-    <div class="progress-wrap">
-      <div class="progress-track">
-        <div class="progress-fill" id="progress-fill" style="width:0%"></div>
-        <div class="progress-marker" title="Fin repos 3 min"></div>
+    <div class="prog-wrap">
+      <div class="prog-track">
+        <div class="prog-fill" id="prog-fill" style="width:0%"></div>
+        <div class="prog-mark"></div>
       </div>
     </div>
   </div>
@@ -148,39 +186,41 @@ main{padding:14px 18px;}
 <main>
 <div class="ctrl-bar">
   <button class="btn-ctrl btn-start" id="btn-play" onclick="togglePlay()">▶ Démarrer</button>
-  <button class="btn-ctrl btn-reset" onclick="resetSim()">↺ Réinitialiser</button>
-  <span style="font-size:11px;color:var(--text2);">Vitesse :</span>
-  <select class="speed-sel" onchange="setSpeed(this.value)">
-    <option value="1">×1 (12 min réel)</option>
-    <option value="6">×6 (2 min)</option>
-    <option value="12" selected>×12 (1 min)</option>
-    <option value="30">×30 (24 s)</option>
-    <option value="60">×60 (12 s)</option>
+  <button class="btn-ctrl btn-reset" onclick="resetSim()">↺ Reset</button>
+  <span style="font-size:10px;color:var(--text2);">Vitesse :</span>
+  <select class="spd-sel" onchange="setSpeed(this.value)">
+    <option value="1">×1 réel</option>
+    <option value="6">×6</option>
+    <option value="12" selected>×12</option>
+    <option value="30">×30</option>
+    <option value="60">×60</option>
   </select>
-  <span style="font-size:10px;color:var(--text2);margin-left:auto;">D = 50 mm fixe · Modèle physiologique v2</span>
+  <span style="font-size:10px;color:var(--text2);">Sexe :</span>
+  <div class="sex-toggle">
+    <button class="sex-btn active-f" id="btn-f" onclick="setSex('F')">♀ Femme</button>
+    <button class="sex-btn" id="btn-m" onclick="setSex('M')">♂ Homme</button>
+  </div>
+  <span style="font-size:10px;color:var(--text2);margin-left:auto;">D = 50 mm · v3 sexuée</span>
 </div>
 
 <div class="tabs">
   <button class="tab active" onclick="sw('m1')">Modèle 1 — 1 capteur</button>
-  <button class="tab" onclick="sw('m2')">Modèle 2 — 2 capteurs + IP composite</button>
+  <button class="tab" onclick="sw('m2')">Modèle 2 — 2 capteurs + IP + Diagnostic</button>
 </div>
 
-<!-- ===== MODELE 1 ===== -->
+<!-- ========== MODELE 1 ========== -->
 <div class="panel active" id="panel-m1">
 
-<div class="phys-note">
-  <strong>Modèle physiologique corrigé v2</strong> —
-  Montée PAS rapide dès 1 min (pic 185–200 mmHg), plateau vers 5 min, descente progressive à l'arrêt ·
-  PAD stable puis légère baisse à l'effort (vasodilatation périphérique) ·
-  FC jusqu'à 130–145 bpm (effort modéré-intense) avec cinétique rapide.
+<div class="sex-ref-note" id="ref-note-m1">
+  ♀ Femme 40 ans — Valeurs ref : PAS 118 mmHg · PAD 72 mmHg · FC 68 bpm · Diam. CCA 6,1 mm · VOP locale 5,8 m/s · SI 7,0 m/s (Krejza 2006, Brillante 2008, ESH 2023)
 </div>
 
 <div class="calib-box">
-  <h3>Calibration initiale au repos — tous les 15 jours</h3>
+  <h3>Calibration au repos — tous les 15 jours</h3>
   <div class="crow">
-    <div class="cf"><label>PAS repos (mmHg)</label><input type="number" id="s1" value="118" min="80" max="160"></div>
-    <div class="cf"><label>PAD repos (mmHg)</label><input type="number" id="d1" value="72" min="40" max="100"></div>
-    <div class="cf"><label>FC repos (bpm)</label><input type="number" id="h1" value="64" min="40" max="100"></div>
+    <div class="cf"><label>PAS (mmHg)</label><input type="number" id="s1" value="118" min="80" max="180"></div>
+    <div class="cf"><label>PAD (mmHg)</label><input type="number" id="d1" value="72" min="40" max="110"></div>
+    <div class="cf"><label>FC (bpm)</label><input type="number" id="h1" value="68" min="40" max="110"></div>
     <div class="cf"><label>Taille (cm)</label><input type="number" id="ht1" value="165" min="140" max="200"></div>
     <div class="cf"><label>Date</label><input type="text" id="cd1" value="10/06/2025"></div>
     <div style="align-self:flex-end;"><button class="btn-apply" onclick="applyCalib()">Appliquer ↗</button></div>
@@ -188,15 +228,24 @@ main{padding:14px 18px;}
 </div>
 
 <div class="mg m4">
-  <div class="mc" id="mc1s"><div class="ml">PAS</div><div class="mv" id="v1s">—</div><div class="mu">mmHg</div></div>
-  <div class="mc" id="mc1d"><div class="ml">PAD</div><div class="mv" id="v1d">—</div><div class="mu">mmHg</div></div>
+  <div class="mc" id="mc1s">
+    <div class="ml">PAS</div><div class="mv" id="v1s">—</div><div class="mu">mmHg</div>
+    <div class="mref" id="r1s">Ref F: &lt;140</div>
+  </div>
+  <div class="mc" id="mc1d">
+    <div class="ml">PAD</div><div class="mv" id="v1d">—</div><div class="mu">mmHg</div>
+    <div class="mref" id="r1d">Ref F: &lt;90</div>
+  </div>
   <div class="mc"><div class="ml">PAM</div><div class="mv" id="v1m">—</div><div class="mu">mmHg</div></div>
-  <div class="mc" id="mc1h"><div class="ml">FC</div><div class="mv" id="v1h">—</div><div class="mu">bpm</div></div>
+  <div class="mc" id="mc1h">
+    <div class="ml">FC</div><div class="mv" id="v1h">—</div><div class="mu">bpm</div>
+    <div class="mref" id="r1h">FCmax: 180 bpm</div>
+  </div>
 </div>
 <div class="mg m3">
-  <div class="mc"><div class="ml">Stiffness Index</div><div class="mv" id="v1si">—</div><div class="mu">m/s</div></div>
-  <div class="mc"><div class="ml">Reflection Index</div><div class="mv" id="v1ri">—</div><div class="mu">%</div></div>
-  <div class="mc"><div class="ml">Pression pulsée</div><div class="mv" id="v1pp">—</div><div class="mu">mmHg</div></div>
+  <div class="mc"><div class="ml">Stiffness Index</div><div class="mv" id="v1si">—</div><div class="mu">m/s</div><div class="mref" id="r1si">Ref F 40a: 6.5–7.5</div></div>
+  <div class="mc"><div class="ml">Reflection Index</div><div class="mv" id="v1ri">—</div><div class="mu">%</div><div class="mref">Ref: 50–70%</div></div>
+  <div class="mc"><div class="ml">Pression pulsée</div><div class="mv" id="v1pp">—</div><div class="mu">mmHg</div><div class="mref">Normal: &lt;60</div></div>
 </div>
 
 <div class="phase-bar"><div class="ph-r"></div><div class="ph-e"></div></div>
@@ -204,67 +253,61 @@ main{padding:14px 18px;}
 <div class="leg">
   <div class="li"><div class="ld" style="background:var(--blue)"></div>Piézo (µV)</div>
   <div class="li"><div class="ld" style="background:var(--orange)"></div>Onde de pouls</div>
-  <div class="li"><div class="ld" style="background:#66bb6a"></div>PAS</div>
-  <div class="li"><div class="ld" style="background:#4da6ff"></div>PAD</div>
+  <div class="li"><div class="ld" style="background:#56d364"></div>PAS</div>
+  <div class="li"><div class="ld" style="background:var(--blue)"></div>PAD</div>
   <div class="li"><div class="ld" style="background:var(--purple)"></div>FC</div>
-  <div class="li"><div class="ld" style="background:#ff8a65"></div>SI</div>
+  <div class="li"><div class="ld" style="background:#f78166"></div>SI</div>
 </div>
 
 <div class="chart-card"><div class="ct">Signal piézoélectrique carotidien (µV)</div>
-  <div style="position:relative;"><canvas id="c1p" height="85"></canvas>
+  <div style="position:relative;"><canvas id="c1p" height="80"></canvas>
   <div class="chart-phase-cursor"></div><div class="chart-cursor" id="cur1p"></div></div></div>
-
-<div class="chart-card"><div class="ct">Onde de pouls carotidienne calibrée (mmHg)</div>
-  <div style="position:relative;"><canvas id="c1b" height="85"></canvas>
+<div class="chart-card"><div class="ct">Onde de pouls calibrée (mmHg)</div>
+  <div style="position:relative;"><canvas id="c1b" height="80"></canvas>
   <div class="chart-phase-cursor"></div><div class="chart-cursor" id="cur1b"></div></div></div>
-
-<div class="chart-card"><div class="ct">Tension artérielle continue — PAS / PAD (mmHg)</div>
-  <div style="position:relative;"><canvas id="c1ta" height="85"></canvas>
+<div class="chart-card"><div class="ct">Tension artérielle continue PAS / PAD (mmHg)</div>
+  <div style="position:relative;"><canvas id="c1ta" height="80"></canvas>
   <div class="chart-phase-cursor"></div><div class="chart-cursor" id="cur1ta"></div></div></div>
-
 <div class="chart-card"><div class="ct">Fréquence cardiaque (bpm)</div>
-  <div style="position:relative;"><canvas id="c1hr" height="72"></canvas>
+  <div style="position:relative;"><canvas id="c1hr" height="70"></canvas>
   <div class="chart-phase-cursor"></div><div class="chart-cursor" id="cur1hr"></div></div></div>
-
 <div class="chart-card"><div class="ct">Stiffness Index (m/s) — rigidité pariétale carotidienne</div>
-  <div style="position:relative;"><canvas id="c1si" height="72"></canvas>
+  <div style="position:relative;"><canvas id="c1si" height="70"></canvas>
   <div class="chart-phase-cursor"></div><div class="chart-cursor" id="cur1si"></div></div></div>
 
 <div class="notes">
-  Capteur AlN/Kapton · carotide primitive gauche · 1 capteur.<br>
-  PAS pic effort ~195 mmHg (normal pour effort soutenu 4 étages) · PAD stable à légère baisse (vasodilatation).<br>
-  FC pic ~138 bpm · SI = taille(m)/ΔT(s) · RI = (A_dia/A_sys)×100 · Calibration AAMI tous les 15 j.
+  Capteur AlN/Kapton · Carotide primitive · 1 capteur.<br>
+  Valeurs sexuées ♀ 40 ans : PAS pic effort ~185–192 mmHg · PAD légère baisse (-3 à -5 mmHg) · FC pic ~130–142 bpm · SI repos 6.5–7.5 m/s.<br>
+  Valeurs sexuées ♂ 40 ans : PAS pic effort ~192–210 mmHg · PAD stable · FC pic ~134–148 bpm · SI repos 7.0–8.5 m/s.<br>
+  Sources : Krejza 2006, Brillante 2008, ESH 2023, Frontiers 2026 (38M mesures PWV).
 </div>
 </div>
 
-<!-- ===== MODELE 2 ===== -->
+<!-- ========== MODELE 2 ========== -->
 <div class="panel" id="panel-m2">
 
-<div class="phys-note">
-  <strong>Correction v2 — Vsys découplée de ΔP à l'effort</strong> —
-  Chez le sujet sain, la vélocité systolique carotidienne augmente modérément à l'effort (0.9–1.1 m/s).
-  La hausse de ΔP à l'effort ne traduit pas une sténose mais une augmentation du débit cardiaque.
-  Le modèle applique un plafond physiologique de Vsys et corrige l'IP en conséquence.
+<div class="sex-ref-note" id="ref-note-m2">
+  ♀ Femme 40 ans — Diam. CCA 6,1 ± 0,8 mm · Vsys CCA repos 0,68 m/s · VOP locale repos ~5,8 m/s · croisement rigidité H/F vers 45 ans (Krejza 2006, Gender differences aortic BP 2024)
 </div>
 
 <div class="calib-box">
-  <h3>Calibration initiale — 2 capteurs · D fixe = 50 mm · tous les 15 jours</h3>
+  <h3>Calibration — 2 capteurs · D fixe = 50 mm · tous les 15 jours</h3>
   <div class="crow">
-    <div class="cf"><label>PAS repos (mmHg)</label><input type="number" id="s2" value="118" min="80" max="160"></div>
-    <div class="cf"><label>PAD repos (mmHg)</label><input type="number" id="d2" value="72" min="40" max="100"></div>
-    <div class="cf"><label>FC repos (bpm)</label><input type="number" id="h2" value="64" min="40" max="100"></div>
-    <div class="cf"><label>Diam. artère (mm)</label><input type="number" id="diam" value="7.5" min="3" max="15" step="0.1"></div>
+    <div class="cf"><label>PAS (mmHg)</label><input type="number" id="s2" value="118" min="80" max="180"></div>
+    <div class="cf"><label>PAD (mmHg)</label><input type="number" id="d2" value="72" min="40" max="110"></div>
+    <div class="cf"><label>FC (bpm)</label><input type="number" id="h2" value="68" min="40" max="110"></div>
+    <div class="cf"><label>Diam. CCA (mm)</label><input type="number" id="diam" value="6.1" min="3" max="10" step="0.1"></div>
     <div class="cf"><label>Date</label><input type="text" id="cd2" value="10/06/2025"></div>
     <div style="align-self:flex-end;"><button class="btn-apply" onclick="applyCalib2()">Appliquer ↗</button></div>
   </div>
 </div>
 
 <div class="alpha-box">
-  <h3>Pondérations IP composite — libres (α + β = 1 · à optimiser sur données Doppler)</h3>
+  <h3>Pondérations IP composite — libres (α+β=1 · optimiser sur données Doppler)</h3>
   <div class="formula">
-    IP = α · (A₂/A₁) + β · (S₂/S₁) &nbsp;|&nbsp; A = amplitude systolique &nbsp;|&nbsp; S = surface sous courbe<br>
-    <span id="formula-live">IP = 0.50 · RA + 0.50 · RS</span> &nbsp;·&nbsp;
-    Vsys plafonnée à 1.10 m/s (sujet sain à l'effort) pour éviter faux positifs
+    IP = α·(A₂/A₁) + β·(S₂/S₁) &nbsp;|&nbsp; A = amplitude systolique &nbsp;|&nbsp; S = surface sous courbe<br>
+    <span style="color:var(--text);font-weight:500;" id="formula-live2">IP = 0.50·RA + 0.50·RS</span>
+    &nbsp;·&nbsp; Vsys CCA plafonnée physiologiquement selon sexe
   </div>
   <div class="arow">
     <label>α (amplitude)</label>
@@ -273,36 +316,36 @@ main{padding:14px 18px;}
   </div>
   <div class="arow">
     <label>β (surface)</label>
-    <input type="range" min="0" max="100" value="50" disabled style="flex:1;opacity:.3;accent-color:var(--purple);">
+    <input type="range" min="0" max="100" value="50" disabled style="flex:1;opacity:.3;">
     <span class="aval" id="lbl-b">0.50</span>
   </div>
 </div>
 
 <div class="mg m4">
-  <div class="mc" id="mc2s"><div class="ml">PAS</div><div class="mv" id="v2s">—</div><div class="mu">mmHg</div></div>
+  <div class="mc" id="mc2s"><div class="ml">PAS</div><div class="mv" id="v2s">—</div><div class="mu">mmHg</div><div class="mref" id="r2s">Ref F: &lt;140</div></div>
   <div class="mc" id="mc2d"><div class="ml">PAD</div><div class="mv" id="v2d">—</div><div class="mu">mmHg</div></div>
-  <div class="mc" id="mc2h"><div class="ml">FC</div><div class="mv" id="v2h">—</div><div class="mu">bpm</div></div>
+  <div class="mc" id="mc2h"><div class="ml">FC</div><div class="mv" id="v2h">—</div><div class="mu">bpm</div><div class="mref" id="r2h">FCmax F: 180</div></div>
   <div class="mc"><div class="ml">PAM</div><div class="mv" id="v2m">—</div><div class="mu">mmHg</div></div>
 </div>
 <div class="mg m3">
   <div class="mc"><div class="ml">PTT (D=50mm)</div><div class="mv" id="v2ptt">—</div><div class="mu">ms</div></div>
-  <div class="mc"><div class="ml">VOP locale</div><div class="mv" id="v2vop">—</div><div class="mu">m/s</div></div>
-  <div class="mc" id="mc2vs"><div class="ml">Vsys pic (plafonnée)</div><div class="mv" id="v2vs">—</div><div class="mu">m/s</div></div>
+  <div class="mc"><div class="ml">VOP locale</div><div class="mv" id="v2vop">—</div><div class="mu">m/s</div><div class="mref" id="r2vop">Ref F 40a: 5.5–6.5</div></div>
+  <div class="mc" id="mc2vs"><div class="ml">Vsys CCA</div><div class="mv" id="v2vs">—</div><div class="mu">m/s</div><div class="mref" id="r2vs">Ref F repos: 0.65–0.80</div></div>
 </div>
 
 <div class="steno-panel">
   <h3>Index de perméabilité composite — dépistage sténose carotidienne</h3>
   <div class="formula">
-    Vsys sujet sain : repos ~0.75 m/s · effort modéré ~0.95 m/s · effort intense ~1.05 m/s (plafond physiologique).<br>
-    Sténose suspectée uniquement si Vsys &gt; 1.25 m/s <em>au repos</em> ou IP persistant &lt; 0.60.
+    Vsys CCA sain : ♀ repos ~0.70 m/s · effort ~0.90 m/s &nbsp;|&nbsp; ♂ repos ~0.85 m/s · effort ~1.05 m/s<br>
+    Sténose suspectée si Vsys &gt; 1.25 m/s au repos OU IP persistant &lt; 0.60 (critères NASCET/ESC)
   </div>
   <div class="sgrid">
     <div class="sc"><div class="sl">IP composite</div><div class="sv" id="v2ip">—</div></div>
     <div class="sc"><div class="sl">Ratio amplitudes A₂/A₁</div><div class="sv" id="v2ra">—</div></div>
     <div class="sc"><div class="sl">Ratio surfaces S₂/S₁</div><div class="sv" id="v2rs">—</div></div>
     <div class="sc"><div class="sl">Degré sténose estimé</div><div class="sv" id="v2deg">—</div></div>
-    <div class="sc"><div class="sl">Vsys / seuil repos</div><div class="sv" id="v2vc">—</div></div>
-    <div class="sc"><div class="sl">Conclusion</div><div class="sv" id="v2conc">—</div></div>
+    <div class="sc"><div class="sl">Vsys / seuil NASCET</div><div class="sv" id="v2vc">—</div></div>
+    <div class="sc"><div class="sl">IP conclusion</div><div class="sv" id="v2conc">—</div></div>
   </div>
   <div class="seuils">
     <span class="stag">IP &gt; 0.85 → Normal</span>
@@ -310,7 +353,6 @@ main{padding:14px 18px;}
     <span class="stag">IP &lt; 0.60 → Suspicion sténose</span>
     <span class="stag">Vsys repos &gt; 1.25 m/s → ≥ 50%</span>
     <span class="stag">Vsys repos &gt; 2.30 m/s → ≥ 70%</span>
-    <span class="stag" style="color:var(--green);border-color:rgba(102,187,106,.3)">Vsys effort &lt; 1.10 m/s → Normal</span>
   </div>
 </div>
 
@@ -319,114 +361,166 @@ main{padding:14px 18px;}
 <div class="leg">
   <div class="li"><div class="ld" style="background:var(--blue)"></div>C1 proximal</div>
   <div class="li"><div class="ld" style="background:var(--orange)"></div>C2 distal</div>
-  <div class="li"><div class="ld" style="background:#66bb6a"></div>PAS</div>
-  <div class="li"><div class="ld" style="background:#4da6ff"></div>PAD</div>
+  <div class="li"><div class="ld" style="background:#56d364"></div>PAS</div>
+  <div class="li"><div class="ld" style="background:var(--blue)"></div>PAD</div>
   <div class="li"><div class="ld" style="background:var(--purple)"></div>IP composite</div>
-  <div class="li"><div class="ld" style="background:var(--teal)"></div>Vsys (plafonnée)</div>
+  <div class="li"><div class="ld" style="background:var(--teal)"></div>Vsys CCA</div>
 </div>
 
 <div class="chart-card"><div class="ct">C1 proximal (bleu) vs C2 distal (orange) — µV · décalage PTT visible</div>
-  <div style="position:relative;"><canvas id="c2d" height="85"></canvas>
+  <div style="position:relative;"><canvas id="c2d" height="80"></canvas>
   <div class="chart-phase-cursor"></div><div class="chart-cursor" id="cur2d"></div></div></div>
-
-<div class="chart-card"><div class="ct">PTT inter-capteurs (ms) — D = 50 mm · diminue à l'effort (VOP augmente)</div>
-  <div style="position:relative;"><canvas id="c2ptt" height="72"></canvas>
+<div class="chart-card"><div class="ct">PTT inter-capteurs (ms) — D=50mm · diminue à l'effort (VOP augmente)</div>
+  <div style="position:relative;"><canvas id="c2ptt" height="68"></canvas>
   <div class="chart-phase-cursor"></div><div class="chart-cursor" id="cur2ptt"></div></div></div>
-
-<div class="chart-card"><div class="ct">Tension artérielle continue — PAS / PAD (mmHg)</div>
-  <div style="position:relative;"><canvas id="c2ta" height="85"></canvas>
+<div class="chart-card"><div class="ct">Tension artérielle continue PAS / PAD (mmHg)</div>
+  <div style="position:relative;"><canvas id="c2ta" height="80"></canvas>
   <div class="chart-phase-cursor"></div><div class="chart-cursor" id="cur2ta"></div></div></div>
-
-<div class="chart-card"><div class="ct">Vsys pic carotidienne (m/s) — plafond physiologique sujet sain · seuils NASCET au repos</div>
-  <div style="position:relative;"><canvas id="c2vs" height="72"></canvas>
+<div class="chart-card"><div class="ct">Vsys CCA (m/s) — plafond physiologique sexué · seuils NASCET au repos</div>
+  <div style="position:relative;"><canvas id="c2vs" height="68"></canvas>
   <div class="chart-phase-cursor"></div><div class="chart-cursor" id="cur2vs"></div></div></div>
-
 <div class="chart-card"><div class="ct">Index de perméabilité IP composite (u.a.) — pondération α/β courante</div>
-  <div style="position:relative;"><canvas id="c2ip" height="72"></canvas>
+  <div style="position:relative;"><canvas id="c2ip" height="68"></canvas>
   <div class="chart-phase-cursor"></div><div class="chart-cursor" id="cur2ip"></div></div></div>
 
+<!-- ===== DIAGNOSTIC PANEL ===== -->
+<div class="diag-panel" id="diag-panel">
+  <h2>📋 Rapport de synthèse diagnostique — fin d'acquisition</h2>
+
+  <div class="diag-grid">
+    <div class="diag-card">
+      <h4>Paramètres hémodynamiques</h4>
+      <div class="diag-line"><span class="dl">PAS repos</span><span class="dv" id="dg-sbp-rest">—</span></div>
+      <div class="diag-line"><span class="dl">PAS pic effort</span><span class="dv" id="dg-sbp-peak">—</span></div>
+      <div class="diag-line"><span class="dl">PAD repos</span><span class="dv" id="dg-dbp-rest">—</span></div>
+      <div class="diag-line"><span class="dl">PAD effort (min)</span><span class="dv" id="dg-dbp-min">—</span></div>
+      <div class="diag-line"><span class="dl">FC repos</span><span class="dv" id="dg-hr-rest">—</span></div>
+      <div class="diag-line"><span class="dl">FC pic effort</span><span class="dv" id="dg-hr-peak">—</span></div>
+      <div class="diag-line"><span class="dl">PAM repos</span><span class="dv" id="dg-map">—</span></div>
+    </div>
+    <div class="diag-card">
+      <h4>Rigidité artérielle carotidienne</h4>
+      <div class="diag-line"><span class="dl">SI repos</span><span class="dv" id="dg-si-rest">—</span></div>
+      <div class="diag-line"><span class="dl">SI pic effort</span><span class="dv" id="dg-si-peak">—</span></div>
+      <div class="diag-line"><span class="dl">RI repos</span><span class="dv" id="dg-ri">—</span></div>
+      <div class="diag-line"><span class="dl">Pression pulsée</span><span class="dv" id="dg-pp">—</span></div>
+      <div class="diag-line"><span class="dl">VOP locale repos</span><span class="dv" id="dg-vop-rest">—</span></div>
+      <div class="diag-line"><span class="dl">VOP locale effort</span><span class="dv" id="dg-vop-peak">—</span></div>
+      <div class="diag-line"><span class="dl">PTT moyen repos</span><span class="dv" id="dg-ptt">—</span></div>
+    </div>
+    <div class="diag-card">
+      <h4>Index de perméabilité carotidien</h4>
+      <div class="diag-line"><span class="dl">IP moyen repos</span><span class="dv" id="dg-ip-rest">—</span></div>
+      <div class="diag-line"><span class="dl">IP moyen effort</span><span class="dv" id="dg-ip-eff">—</span></div>
+      <div class="diag-line"><span class="dl">IP minimum</span><span class="dv" id="dg-ip-min">—</span></div>
+      <div class="diag-line"><span class="dl">RA moyen</span><span class="dv" id="dg-ra">—</span></div>
+      <div class="diag-line"><span class="dl">RS moyen</span><span class="dv" id="dg-rs">—</span></div>
+    </div>
+    <div class="diag-card">
+      <h4>Vélocité systolique — dépistage sténose</h4>
+      <div class="diag-line"><span class="dl">Vsys repos</span><span class="dv" id="dg-vs-rest">—</span></div>
+      <div class="diag-line"><span class="dl">Vsys pic effort</span><span class="dv" id="dg-vs-peak">—</span></div>
+      <div class="diag-line"><span class="dl">Vsys max global</span><span class="dv" id="dg-vs-max">—</span></div>
+      <div class="diag-line"><span class="dl">Seuil NASCET 50%</span><span class="dv">1.25 m/s</span></div>
+      <div class="diag-line"><span class="dl">Seuil NASCET 70%</span><span class="dv">2.30 m/s</span></div>
+      <div class="diag-line"><span class="dl">Dépassement seuil</span><span class="dv" id="dg-seuil">—</span></div>
+    </div>
+  </div>
+
+  <div class="diag-conclusion">
+    <h4>Conclusion diagnostique — <span id="dg-sex-label">♀ Femme 40 ans</span> · Comparaison aux références bibliographiques 2024–2025</h4>
+    <div class="conc-main" id="dg-conc-main">En attente de données...</div>
+    <div class="conc-detail" id="dg-conc-detail"></div>
+    <div class="conc-reco" id="dg-conc-reco"></div>
+  </div>
+</div>
+
 <div class="notes">
-  2 capteurs AlN/Kapton · D = 50 mm · carotide primitive gauche.<br>
-  VOP = 0.050 / PTT(s) · IP = α·(A₂/A₁) + (1−α)·(S₂/S₁).<br>
-  Vsys modélisée indépendamment de ΔP à l'effort : augmentation physiologique plafonnée à 1.05 m/s (sujet sain).<br>
-  Sténose suspectée si IP &lt; 0.60 persistant OU Vsys &gt; 1.25 m/s au repos uniquement.<br>
-  Bilan Doppler de confirmation recommandé si critères dépassés.
+  2 capteurs AlN/Kapton · D = 50 mm · Carotide primitive.<br>
+  Références sexuées : ♀ Diam. CCA 6.1±0.8 mm (vs ♂ 6.5±1.0 mm) · Vsys CCA ♀ repos 0.68 m/s (vs ♂ 0.85 m/s).<br>
+  VOP : ♂ &gt; ♀ avant 45 ans — croisement à la ménopause (Frontiers CVD 2026 · 38M mesures).<br>
+  IP optimiser pondérations α/β par AUC-ROC sur données Doppler de référence.
 </div>
 </div>
+
 </main>
 
 <script>
 // ===== CONSTANTES =====
-const TOTAL=720, D=0.050;
-const WINDOW=120;
-let sbp0=118,dbp0=72,hr0=64,ht0=165,diam0=7.5,alpha=0.50;
+const TOTAL=720, D=0.050, WINDOW=120;
+let sex='F';
+let sbp0=118,dbp0=72,hr0=68,ht0=165,diam0=6.1,alpha=0.50;
 let playing=false,tick=0,speed=12,animId=null,lastTs=null,accumMs=0;
 let activePanel='m1';
 let SBP,DBP,HR,PIEZO,BPW,PTT,VSYS,RA,RS,SIarr,RIarr;
 
-// ===== MODELE PHYSIOLOGIQUE CORRIGE =====
-// Cinétique PAS : montée rapide dès la 1ère minute, plateau vers 5 min, descente douce
-function sbpProfile(t, sbp0){
-  if(t<=3) return sbp0 + (Math.random()-.5)*3;
-  const te=t-3; // temps depuis début effort (0..9)
-  // montée rapide (tau=1.5 min), plateau à sbp0+75 mmHg max
-  const plateau=75;
-  const rise=plateau*(1-Math.exp(-te/1.5));
-  // légère oscillation respiratoire
-  const osc=3*Math.sin(t*0.35+0.8);
-  return sbp0+rise+osc+(Math.random()-.5)*2.5;
-}
+// ===== PARAMETRES SEXUES =====
+// Source: Krejza 2006, Gender diff 2024, ESH 2023, Frontiers 2026
+const REF={
+  F:{
+    sbp0:118,dbp0:72,hr0:68,ht0:165,diam:6.1,
+    sbpPeak:188, dbpDrop:-4, hrPeak:138, hrTau:1.2,
+    siRest:7.0, siPeak:9.5,
+    vsysRest:0.70, vsysPeak:0.92,
+    vopRest:5.8,
+    pttRest:D/5.8*1000, pttEff:D/8.5*1000,
+    label:'♀ Femme 40 ans',
+    refSI:'Ref ♀ 40a: 6.5–7.5 m/s',
+    refVOP:'Ref ♀ 40a: 5.5–6.5 m/s',
+    refVsys:'Ref ♀ repos: 0.65–0.80 m/s',
+    refSBP:'Ref ♀: <140 mmHg',
+    refHR:'FCmax ♀: 180 bpm',
+    refNote:'♀ Femme 40 ans — PAS repos 118 · PAD 72 · FC 68 · Diam. CCA 6.1 mm · VOP 5.8 m/s · SI 7.0 m/s (ESH 2023, Krejza 2006)',
+    concSex:'Femme 40 ans (pré-ménopause)',
+    normConc:'Profil cardiovasculaire normal pour une femme de 40 ans. À cet âge, la rigidité carotidienne est encore inférieure à l\'homme mais la pente d\'augmentation est plus rapide (croisement attendu vers 45 ans).',
+    warnConc:'Paramètres limites. Chez la femme de 40 ans, surveiller l\'évolution du SI (pente d\'augmentation plus rapide qu\'un homme). Contrôle dans 6 mois recommandé.',
+    alertConc:'Anomalie détectée. Chez la femme de 40 ans, ces valeurs nécessitent un bilan Doppler de confirmation. Les oestrogènes protègent encore la paroi artérielle à cet âge : une anomalie est significative.',
+  },
+  M:{
+    sbp0:122,dbp0:78,hr0:64,ht0:175,diam:6.5,
+    sbpPeak:205, dbpDrop:0, hrPeak:144, hrTau:1.0,
+    siRest:7.8, siPeak:11.0,
+    vsysRest:0.85, vsysPeak:1.05,
+    vopRest:6.5,
+    pttRest:D/6.5*1000, pttEff:D/9.5*1000,
+    label:'♂ Homme 40 ans',
+    refSI:'Ref ♂ 40a: 7.0–8.5 m/s',
+    refVOP:'Ref ♂ 40a: 6.0–7.5 m/s',
+    refVsys:'Ref ♂ repos: 0.75–0.95 m/s',
+    refSBP:'Ref ♂: <140 mmHg',
+    refHR:'FCmax ♂: 180 bpm',
+    refNote:'♂ Homme 40 ans — PAS repos 122 · PAD 78 · FC 64 · Diam. CCA 6.5 mm · VOP 6.5 m/s · SI 7.8 m/s (ESH 2023, Krejza 2006, Gender diff 2024)',
+    concSex:'Homme 40 ans',
+    normConc:'Profil cardiovasculaire normal pour un homme de 40 ans. La VOP et le SI sont physiologiquement plus élevés que chez la femme du même âge (différence H/F confirmée : cf-PWV ♂ 8.74 vs ♀ 8.31 m/s, ELSA-Brasil 2017).',
+    warnConc:'Paramètres limites. Chez l\'homme de 40 ans, une VOP ou SI élevés sont des facteurs de risque cardiovasculaire indépendants. Bilan lipidique et suivi tensionnel recommandés.',
+    alertConc:'Anomalie significative. Chez l\'homme de 40 ans, ces valeurs dépassent les normes bibliographiques et nécessitent un bilan Doppler urgent + évaluation du risque cardiovasculaire global (score SCORE2).',
+  }
+};
 
-// PAD : stable au repos, légère baisse à l'effort (vasodilatation périphérique -5 mmHg max)
-function dbpProfile(t, dbp0){
-  if(t<=3) return dbp0+(Math.random()-.5)*1.5;
-  const te=t-3;
-  const drop=-5*(1-Math.exp(-te/3));
-  return dbp0+drop+(Math.random()-.5)*1.5;
-}
-
-// FC : montée rapide dès début effort, plateau vers 4 min, pic ~138 bpm
-function hrProfile(t, hr0){
-  if(t<=3) return hr0+(Math.random()-.5)*1.5;
-  const te=t-3;
-  const plateau=hr0+74; // pic ~138 pour hr0=64
-  const val=plateau-(plateau-hr0)*Math.exp(-te/1.2);
-  return val+(Math.random()-.5)*1.5;
-}
-
-// Vsys carotidienne : indépendante de ΔP, augmentation modeste physiologique plafonnée
-// Repos : 0.70–0.80 m/s · Effort progressif : 0.85–1.05 m/s max (sujet sain)
-function vsysProfile(t){
-  if(t<=3) return 0.75+(Math.random()-.5)*0.04;
-  const te=t-3;
-  const rise=0.30*(1-Math.exp(-te/2.0)); // +0.30 max → plafond ~1.05
-  return 0.75+rise+(Math.random()-.5)*0.03;
-}
-
-// PTT : diminue à l'effort (VOP augmente avec débit cardiaque)
-// Repos : D/1.7*1000 ≈ 29.4 ms · Effort : D/2.5*1000 ≈ 20 ms
-function pttProfile(t){
-  const ptt_rest=D/1.7*1000;
-  const ptt_eff=D/2.5*1000;
-  if(t<=3) return ptt_rest+(Math.random()-.5)*0.8;
-  const te=t-3;
-  const drop=(ptt_rest-ptt_eff)*(1-Math.exp(-te/2.0));
-  return ptt_rest-drop+(Math.random()-.5)*0.6;
-}
-
-function seed(i){ return Math.abs((Math.sin(i*127.1+3.7)*43758.5453)%1); }
+function R(){ return REF[sex]; }
+function ph(t){ return t<3?0:Math.min((t-3)/1,1); }
 function rnd(v,d=1){ return parseFloat(v.toFixed(d)); }
+function seed(i){ return Math.abs((Math.sin(i*127.1+3.7)*43758.5453)%1); }
 
+// ===== GENERATION DONNEES PHYSIOLOGIQUES SEXUEES =====
 function generateAll(){
+  const r=R();
   SBP=[];DBP=[];HR=[];PIEZO=[];BPW=[];PTT=[];VSYS=[];RA=[];RS=[];SIarr=[];RIarr=[];
   for(let i=0;i<TOTAL;i++){
-    const t=i/60;
-    const sbp=sbpProfile(t,sbp0);
-    const dbp=dbpProfile(t,dbp0);
-    const hr=hrProfile(t,hr0);
-    const bpm=hr;
-    const cyc=60/bpm, pos=(t%cyc)/cyc;
-    const amp=0.28+0.44*Math.min((t<=3?0:(t-3)/9),1);
+    const t=i/60, p=ph(t);
+    // PAS : montée rapide tau=1.5 min, plateau sbpPeak
+    const sbpPlateau=r.sbpPeak-r.sbp0;
+    const sbpRise=t<=3?0:sbpPlateau*(1-Math.exp(-(t-3)/1.5));
+    const sbp=r.sbp0+sbpRise+4*Math.sin(t*.35+0.8)+(seed(i+2)-.5)*2.5;
+    // PAD : légère baisse à l'effort pour F, stable pour M
+    const dbpDrop=t<=3?0:r.dbpDrop*(1-Math.exp(-(t-3)/3));
+    const dbp=r.dbp0+dbpDrop+(seed(i+3)-.5)*1.5;
+    // FC : montée rapide
+    const hrPlateau=r.hrPeak-r.hr0;
+    const hrRise=t<=3?0:hrPlateau*(1-Math.exp(-(t-3)/r.hrTau));
+    const hr=r.hr0+hrRise+(seed(i+4)-.5)*1.5;
+    const bpm=hr, cyc=60/bpm, pos=(t%cyc)/cyc;
+    const amp=0.25+0.42*p;
     let pz=0;
     if(pos<0.10) pz=amp*Math.sin(Math.PI*pos/0.10);
     else if(pos<0.14) pz=amp*0.32*Math.sin(Math.PI*(pos-0.10)/0.04);
@@ -435,15 +529,21 @@ function generateAll(){
     if(pos<0.10) bpv=dbp+(sbp-dbp)*Math.sin(Math.PI*pos/0.10);
     else if(pos<0.14) bpv=sbp*0.85+dbp*0.15;
     else bpv=dbp+(sbp*0.15)*Math.exp(-(pos-0.14)*6);
-    const pttv=pttProfile(t);
-    const vsysv=vsysProfile(t);
-    const a1=amp, a2=amp*(0.84-0.04*Math.min((t<=3?0:(t-3)/9),1)+(seed(i+5)-.5)*0.018);
-    const s1=amp*cyc*0.35, s2=s1*(0.80-0.03*Math.min((t<=3?0:(t-3)/9),1)+(seed(i+6)-.5)*0.018);
-    const dtFrac=0.13+0.06*Math.min((t<=3?0:(t-3)/9),1);
+    // PTT : diminue à l'effort (VOP augmente)
+    const pttDrop=r.pttRest-r.pttEff;
+    const pttv=t<=3?r.pttRest:r.pttRest-pttDrop*(1-Math.exp(-(t-3)/2))+(seed(i+5)-.5)*0.6;
+    // Vsys CCA : indépendante de ΔP, sexuée, plafonnée
+    const vsysDrop=r.vsysPeak-r.vsysRest;
+    const vsysv=t<=3?r.vsysRest:r.vsysRest+vsysDrop*(1-Math.exp(-(t-3)/2.5))+(seed(i+6)-.5)*0.025;
+    // Ratios amplitudes et surfaces
+    const a1=amp, a2=amp*(0.84-0.04*p+(seed(i+7)-.5)*0.015);
+    const s1=amp*cyc*0.35, s2=s1*(0.80-0.03*p+(seed(i+8)-.5)*0.015);
+    // Stiffness Index
+    const dtFrac=0.13+0.06*p;
     const si=rnd((ht0/100)/(dtFrac*cyc),2);
-    const ri=rnd(Math.min(98,(a2/a1)*100+2*(seed(i+7)-.5)),1);
+    const ri=rnd(Math.min(98,(a2/a1)*100+2*(seed(i+9)-.5)),1);
     SBP.push(rnd(sbp)); DBP.push(rnd(dbp)); HR.push(rnd(hr));
-    PIEZO.push(rnd(pz+(seed(i+8)-.5)*0.025,3)); BPW.push(rnd(bpv,1));
+    PIEZO.push(rnd(pz+(seed(i+10)-.5)*0.02,3)); BPW.push(rnd(bpv,1));
     PTT.push(rnd(pttv,1)); VSYS.push(rnd(vsysv,3));
     RA.push(rnd(a2/a1,3)); RS.push(rnd(s2/s1,3));
     SIarr.push(si); RIarr.push(ri);
@@ -453,266 +553,317 @@ function generateAll(){
 // ===== CHARTS =====
 const charts={};
 const th={borderWidth:1.5,pointRadius:0,tension:0.3,fill:false};
-
-function mkLabels(n){ return Array.from({length:n},(_,i)=>rnd(i/60)); }
+function mkL(n){ return Array.from({length:n},(_,i)=>rnd(i/60)); }
 
 function mkChart(id,datasets,ymin,ymax,unit,refs){
-  const el=document.getElementById(id); if(!el) return;
-  if(charts[id]) charts[id].destroy();
+  const el=document.getElementById(id); if(!el)return;
+  if(charts[id])charts[id].destroy();
+  const plugin={id:'refs'+id,afterDraw(ch){
+    if(!ch._refs)return;
+    const ctx=ch.ctx,ya=ch.scales.y,xa=ch.scales.x;
+    ch._refs.forEach(r=>{
+      const y=ya.getPixelForValue(r.v);
+      ctx.save();ctx.setLineDash([5,4]);ctx.strokeStyle=r.c;ctx.lineWidth=1.2;
+      ctx.beginPath();ctx.moveTo(xa.left,y);ctx.lineTo(xa.right,y);ctx.stroke();
+      ctx.setLineDash([]);ctx.fillStyle=r.c;ctx.font='9px sans-serif';
+      ctx.fillText(r.l,xa.right-ctx.measureText(r.l).width-4,y-3);ctx.restore();
+    });
+  }};
+  Chart.register(plugin);
   charts[id]=new Chart(el.getContext('2d'),{
     type:'line',
-    data:{labels:mkLabels(WINDOW),datasets:datasets.map(d=>({...d,data:new Array(WINDOW).fill(null)}))},
-    options:{
-      responsive:true,maintainAspectRatio:false,animation:false,
+    data:{labels:mkL(WINDOW),datasets:datasets.map(d=>({...d,data:new Array(WINDOW).fill(null)}))},
+    options:{responsive:true,maintainAspectRatio:false,animation:false,
       plugins:{legend:{display:false},tooltip:{mode:'index',intersect:false,callbacks:{
         title:it=>`${parseFloat(it[0].label).toFixed(1)} min`,
         label:it=>`${it.dataset.label}: ${it.raw!=null?it.raw:'—'}${unit||''}`
       }}},
       scales:{
-        x:{type:'linear',min:0,max:WINDOW/60,
-          ticks:{stepSize:.5,callback:v=>v+'m',font:{size:9}},grid:{color:'rgba(255,255,255,.04)'}},
-        y:{min:ymin,max:ymax,
-          ticks:{font:{size:9},callback:v=>v+(unit||'')},grid:{color:'rgba(255,255,255,.04)'}}
+        x:{type:'linear',min:0,max:WINDOW/60,ticks:{stepSize:.5,callback:v=>v+'m',font:{size:9}},grid:{color:'rgba(255,255,255,.04)'}},
+        y:{min:ymin,max:ymax,ticks:{font:{size:9},callback:v=>v+(unit||'')},grid:{color:'rgba(255,255,255,.04)'}}
       }
     }
   });
-  // lignes de référence via annotation manuelle SVG-like via afterDraw
-  if(refs){
-    charts[id]._refs=refs;
-    const origAfterDraw=Chart.registry.plugins.get('annotation');
-    // On dessine les refs manuellement dans afterDraw
-    charts[id]._refsPlugin={
-      id:'refsPlugin',
-      afterDraw(chart){
-        const refs=chart._refs; if(!refs) return;
-        const ctx=chart.ctx;
-        const yAxis=chart.scales.y;
-        const xAxis=chart.scales.x;
-        refs.forEach(r=>{
-          const y=yAxis.getPixelForValue(r.v);
-          ctx.save();
-          ctx.setLineDash([5,4]);
-          ctx.strokeStyle=r.c;
-          ctx.lineWidth=1;
-          ctx.beginPath();
-          ctx.moveTo(xAxis.left,y);
-          ctx.lineTo(xAxis.right,y);
-          ctx.stroke();
-          ctx.setLineDash([]);
-          ctx.fillStyle=r.c;
-          ctx.font='9px sans-serif';
-          ctx.fillText(r.l,xAxis.right-ctx.measureText(r.l).width-4,y-3);
-          ctx.restore();
-        });
-      }
-    };
-    Chart.register(charts[id]._refsPlugin);
-  }
+  if(refs) charts[id]._refs=refs;
+  el.parentElement.style.height=el.getAttribute('height')+'px';
 }
 
 function initCharts(){
-  mkChart('c1p',[{label:'Piézo µV',borderColor:'#4da6ff',...th}],-0.95,0.95,' µV');
-  mkChart('c1b',[{label:'ODP mmHg',borderColor:'#ff7043',...th}],50,205,' mmHg');
-  mkChart('c1ta',[
-    {label:'PAS',borderColor:'#66bb6a',...th},
-    {label:'PAD',borderColor:'#4da6ff',...th}
-  ],45,210,' mmHg');
-  mkChart('c1hr',[{label:'FC',borderColor:'#ab47bc',...th}],45,155,' bpm');
-  mkChart('c1si',[{label:'SI',borderColor:'#ff8a65',...th}],4,16,' m/s',
-    [{v:7,c:'#4da6ff',l:'~7 repos normal'},{v:10,c:'#ef5350',l:'>10 pathologique'}]);
-  mkChart('c2d',[
-    {label:'C1 proximal',borderColor:'#4da6ff',...th},
-    {label:'C2 distal',borderColor:'#ff7043',borderDash:[4,3],...th}
-  ],-0.95,0.95,' µV');
-  mkChart('c2ptt',[{label:'PTT ms',borderColor:'#26c6da',...th}],16,34,' ms');
-  mkChart('c2ta',[
-    {label:'PAS',borderColor:'#66bb6a',...th},
-    {label:'PAD',borderColor:'#4da6ff',...th}
-  ],45,210,' mmHg');
-  mkChart('c2vs',[{label:'Vsys m/s',borderColor:'#26c6da',...th}],0.4,1.5,' m/s',
-    [{v:1.25,c:'#ff7043',l:'≥50% sténose (repos)'},{v:1.10,c:'#66bb6a',l:'Plafond effort sain'}]);
-  mkChart('c2ip',[{label:'IP',borderColor:'#ab47bc',...th,fill:true,backgroundColor:'rgba(171,71,188,.07)'}],0.30,1.10,'',
-    [{v:0.85,c:'#66bb6a',l:'Normal >0.85'},{v:0.60,c:'#ef5350',l:'Suspicion <0.60'}]);
+  const r=R();
+  const siMax=sex==='M'?14:12, siNorm=sex==='M'?7.8:7.0, siAlert=sex==='M'?11:10;
+  const vsMax=sex==='M'?1.6:1.4;
+  mkChart('c1p',[{label:'Piézo µV',borderColor:'#58a6ff',...th}],-0.92,0.92,' µV');
+  mkChart('c1b',[{label:'ODP mmHg',borderColor:'#f78166',...th}],50,215,' mmHg');
+  mkChart('c1ta',[{label:'PAS',borderColor:'#56d364',...th},{label:'PAD',borderColor:'#58a6ff',...th}],40,220,' mmHg');
+  mkChart('c1hr',[{label:'FC',borderColor:'#bc8cff',...th}],40,160,' bpm');
+  mkChart('c1si',[{label:'SI',borderColor:'#f78166',...th}],4,siMax,' m/s',
+    [{v:siNorm,c:'#58a6ff',l:`~${siNorm} normal`},{v:siAlert,c:'#f85149',l:`>${siAlert} pathologique`}]);
+  mkChart('c2d',[{label:'C1 prox',borderColor:'#58a6ff',...th},{label:'C2 dist',borderColor:'#f78166',borderDash:[4,3],...th}],-0.92,0.92,' µV');
+  mkChart('c2ptt',[{label:'PTT ms',borderColor:'#39d353',...th}],4,12,' ms');
+  mkChart('c2ta',[{label:'PAS',borderColor:'#56d364',...th},{label:'PAD',borderColor:'#58a6ff',...th}],40,220,' mmHg');
+  mkChart('c2vs',[{label:'Vsys m/s',borderColor:'#39d353',...th}],0.4,vsMax,' m/s',
+    [{v:1.25,c:'#f78166',l:'≥50% sténose (repos)'},{v:r.vsysPeak+0.05,c:'#56d364',l:'Plafond effort sain'}]);
+  mkChart('c2ip',[{label:'IP',borderColor:'#bc8cff',...th,fill:true,backgroundColor:'rgba(188,140,255,.06)'}],0.25,1.05,'',
+    [{v:0.85,c:'#56d364',l:'Normal >0.85'},{v:0.60,c:'#f85149',l:'Suspicion <0.60'}]);
 }
 
 function pushPoint(id,dsIdx,val){
-  const ch=charts[id]; if(!ch) return;
+  const ch=charts[id]; if(!ch)return;
   const ds=ch.data.datasets[dsIdx];
-  ds.data.push(val);
-  if(ds.data.length>WINDOW) ds.data.shift();
+  ds.data.push(val); if(ds.data.length>WINDOW) ds.data.shift();
   const t0=Math.max(0,(tick-WINDOW)/60);
   ch.data.labels.forEach((_,i,a)=>a[i]=rnd(t0+i/60));
-  ch.options.scales.x.min=rnd(t0);
-  ch.options.scales.x.max=rnd(t0+WINDOW/60);
+  ch.options.scales.x.min=rnd(t0); ch.options.scales.x.max=rnd(t0+WINDOW/60);
 }
 
 function redrawAll(){
-  const ids=activePanel==='m1'
-    ?['c1p','c1b','c1ta','c1hr','c1si']
-    :['c2d','c2ptt','c2ta','c2vs','c2ip'];
+  const ids=activePanel==='m1'?['c1p','c1b','c1ta','c1hr','c1si']:['c2d','c2ptt','c2ta','c2vs','c2ip'];
   ids.forEach(id=>{ if(charts[id]) charts[id].update('none'); });
-}
-
-function updateCursors(){
-  const pct=`${Math.min(98,(tick/WINDOW)*100)}%`;
-  ['cur1p','cur1b','cur1ta','cur1hr','cur1si',
-   'cur2d','cur2ptt','cur2ta','cur2vs','cur2ip'].forEach(id=>{
-    const e=document.getElementById(id); if(e) e.style.left=pct;
-  });
 }
 
 // ===== TICK =====
 function simTick(){
-  if(tick>=TOTAL){ stopSim(); return; }
+  if(tick>=TOTAL){ stopSim(); buildDiag(); return; }
   const t=tick/60;
   if(activePanel==='m1'){
-    pushPoint('c1p',0,PIEZO[tick]);
-    pushPoint('c1b',0,BPW[tick]);
-    pushPoint('c1ta',0,SBP[tick]);
-    pushPoint('c1ta',1,DBP[tick]);
-    pushPoint('c1hr',0,HR[tick]);
-    pushPoint('c1si',0,SIarr[tick]);
+    pushPoint('c1p',0,PIEZO[tick]); pushPoint('c1b',0,BPW[tick]);
+    pushPoint('c1ta',0,SBP[tick]); pushPoint('c1ta',1,DBP[tick]);
+    pushPoint('c1hr',0,HR[tick]); pushPoint('c1si',0,SIarr[tick]);
   } else {
     const p2=rnd(PIEZO[tick]*RA[tick]*0.97+(seed(tick+99)-.5)*0.01,3);
-    pushPoint('c2d',0,PIEZO[tick]);
-    pushPoint('c2d',1,p2);
+    pushPoint('c2d',0,PIEZO[tick]); pushPoint('c2d',1,p2);
     pushPoint('c2ptt',0,PTT[tick]);
-    pushPoint('c2ta',0,SBP[tick]);
-    pushPoint('c2ta',1,DBP[tick]);
+    pushPoint('c2ta',0,SBP[tick]); pushPoint('c2ta',1,DBP[tick]);
     pushPoint('c2vs',0,VSYS[tick]);
     pushPoint('c2ip',0,rnd(alpha*RA[tick]+(1-alpha)*RS[tick],3));
   }
-  redrawAll();
-  updateCursors();
-  updateMetrics(tick);
-  updateHeader(t);
+  redrawAll(); updateCursors(); updateMetrics(tick); updateHeader(t);
   tick++;
 }
 
 // ===== RAF =====
 function loop(ts){
-  if(!playing){ lastTs=null; return; }
+  if(!playing){lastTs=null;return;}
   if(lastTs!==null){
     accumMs+=(ts-lastTs)*speed;
-    while(accumMs>=1000){
-      simTick(); accumMs-=1000;
-      if(tick>=TOTAL||!playing) return;
-    }
+    while(accumMs>=1000){simTick();accumMs-=1000;if(tick>=TOTAL||!playing)return;}
   }
-  lastTs=ts;
-  animId=requestAnimationFrame(loop);
+  lastTs=ts; animId=requestAnimationFrame(loop);
 }
-
 function togglePlay(){
-  if(tick>=TOTAL){ resetSim(); return; }
+  if(tick>=TOTAL){resetSim();return;}
   playing=!playing;
-  const btn=document.getElementById('btn-play');
-  const dot=document.getElementById('rec-dot');
-  if(playing){
-    btn.textContent='⏸ Pause'; btn.className='btn-ctrl btn-pause';
-    dot.classList.remove('rec-hidden');
-    accumMs=0; lastTs=null; animId=requestAnimationFrame(loop);
-  } else {
-    btn.textContent='▶ Reprendre'; btn.className='btn-ctrl btn-start';
-    dot.classList.add('rec-hidden'); cancelAnimationFrame(animId);
-  }
+  const btn=document.getElementById('btn-play'),dot=document.getElementById('rec-dot');
+  if(playing){btn.textContent='⏸ Pause';btn.className='btn-ctrl btn-pause';dot.classList.remove('rec-hidden');accumMs=0;lastTs=null;animId=requestAnimationFrame(loop);}
+  else{btn.textContent='▶ Reprendre';btn.className='btn-ctrl btn-start';dot.classList.add('rec-hidden');cancelAnimationFrame(animId);}
 }
 function stopSim(){
-  playing=false; cancelAnimationFrame(animId);
+  playing=false;cancelAnimationFrame(animId);
   document.getElementById('btn-play').textContent='✓ Terminé';
   document.getElementById('btn-play').className='btn-ctrl';
   document.getElementById('rec-dot').classList.add('rec-hidden');
   document.getElementById('phase-badge').textContent='✓ Acquisition terminée';
 }
 function resetSim(){
-  playing=false; cancelAnimationFrame(animId);
-  tick=0; accumMs=0; lastTs=null;
+  playing=false;cancelAnimationFrame(animId);tick=0;accumMs=0;lastTs=null;
   document.getElementById('btn-play').textContent='▶ Démarrer';
   document.getElementById('btn-play').className='btn-ctrl btn-start';
   document.getElementById('rec-dot').classList.add('rec-hidden');
   document.getElementById('phase-badge').textContent='⏸ En attente';
   document.getElementById('phase-badge').className='phase-badge';
   document.getElementById('elapsed').textContent='0:00 / 12:00';
-  document.getElementById('progress-fill').style.width='0%';
+  document.getElementById('prog-fill').style.width='0%';
   resetMetrics(); initCharts();
 }
-function setSpeed(v){ speed=parseInt(v); }
+function setSpeed(v){speed=parseInt(v);}
+
+// ===== SEXE =====
+function setSex(s){
+  sex=s;
+  document.getElementById('btn-f').className='sex-btn'+(s==='F'?' active-f':'');
+  document.getElementById('btn-m').className='sex-btn'+(s==='M'?' active-m':'');
+  const r=R();
+  // Update calib defaults
+  document.getElementById('s1').value=r.sbp0; document.getElementById('d1').value=r.dbp0;
+  document.getElementById('h1').value=r.hr0; document.getElementById('ht1').value=r.ht0;
+  document.getElementById('s2').value=r.sbp0; document.getElementById('d2').value=r.dbp0;
+  document.getElementById('h2').value=r.hr0; document.getElementById('diam').value=r.diam;
+  sbp0=r.sbp0; dbp0=r.dbp0; hr0=r.hr0; ht0=r.ht0; diam0=r.diam;
+  // Update ref notes
+  document.getElementById('ref-note-m1').textContent=r.refNote;
+  document.getElementById('ref-note-m2').textContent=r.refNote;
+  // Update ref labels
+  setEl('r1si',r.refSI); setEl('r1s',r.refSBP); setEl('r1h',r.refHR);
+  setEl('r2vop',r.refVOP); setEl('r2vs',r.refVsys); setEl('r2s',r.refSBP); setEl('r2h',r.refHR);
+  setEl('dg-sex-label',r.label);
+  generateAll(); resetSim();
+}
 
 // ===== HEADER =====
-function fmt(s){ const m=Math.floor(s/60); return `${m}:${String(Math.floor(s%60)).padStart(2,'0')}`; }
+function fmt(s){const m=Math.floor(s/60);return `${m}:${String(Math.floor(s%60)).padStart(2,'0')}`;}
 function updateHeader(t){
   const e=t>=3;
   const b=document.getElementById('phase-badge');
-  b.textContent=e?'🏃 Montée 4 étages':'😌 Repos';
+  b.textContent=e?`🏃 Montée 4 étages · ${R().label}`:`😌 Repos · ${R().label}`;
   b.className='phase-badge'+(e?' effort':'');
   document.getElementById('elapsed').textContent=`${fmt(t*60)} / 12:00`;
-  document.getElementById('progress-fill').style.width=`${(t/12)*100}%`;
+  document.getElementById('prog-fill').style.width=`${(t/12)*100}%`;
 }
 
 // ===== METRICS =====
-function el(id,v){ const e=document.getElementById(id); if(e) e.textContent=v; }
+function setEl(id,v){const e=document.getElementById(id);if(e)e.textContent=v;}
 function mc(id,...pairs){
-  const e=document.getElementById(id); if(!e) return;
-  let cls='mc';
-  for(let i=0;i<pairs.length;i+=2){ if(pairs[i]){ cls+=' '+pairs[i+1]; break; } }
-  e.className=cls;
+  const e=document.getElementById(id);if(!e)return;
+  let c='mc';for(let i=0;i<pairs.length;i+=2){if(pairs[i]){c+=' '+pairs[i+1];break;}}e.className=c;
 }
 function resetMetrics(){
   ['v1s','v1d','v1m','v1h','v1si','v1ri','v1pp',
-   'v2s','v2d','v2m','v2h','v2ptt','v2vop','v2vs','v2ip','v2ra','v2rs','v2deg','v2vc'].forEach(id=>el(id,'—'));
-  const c=document.getElementById('v2conc'); if(c) c.textContent='—';
+   'v2s','v2d','v2m','v2h','v2ptt','v2vop','v2vs','v2ip','v2ra','v2rs','v2deg','v2vc'].forEach(id=>setEl(id,'—'));
+  const c=document.getElementById('v2conc');if(c)c.textContent='—';
 }
 function updateMetrics(i){
   const sbp=Math.round(SBP[i]),dbp=Math.round(DBP[i]),hr=Math.round(HR[i]);
   const map=Math.round(dbp+(sbp-dbp)/3);
-  el('v1s',sbp);el('v1d',dbp);el('v1m',map);el('v1h',hr);
-  el('v1si',rnd(SIarr[i]));el('v1ri',Math.round(RIarr[i]));el('v1pp',sbp-dbp);
-  mc('mc1s',sbp>160,'alert');mc('mc1d',dbp>95,'alert');mc('mc1h',hr>150,'alert');
-
+  const si=rnd(SIarr[i]),ri=Math.round(RIarr[i]),pp=sbp-dbp;
+  const r=R();
+  setEl('v1s',sbp);setEl('v1d',dbp);setEl('v1m',map);setEl('v1h',hr);
+  setEl('v1si',si);setEl('v1ri',ri);setEl('v1pp',pp);
+  mc('mc1s',sbp>160,'alert',sbp>140,'warn');
+  mc('mc1d',dbp>100,'alert',dbp>90,'warn');
+  mc('mc1h',hr>160,'alert',hr>150,'warn');
   const ptt=rnd(PTT[i]),vop=rnd(D/(ptt/1000),2);
   const vsys=rnd(VSYS[i],2),ra=rnd(RA[i],2),rs=rnd(RS[i],2);
   const ip=rnd(alpha*RA[i]+(1-alpha)*RS[i],2);
-  el('v2s',sbp);el('v2d',dbp);el('v2m',map);el('v2h',hr);
-  el('v2ptt',ptt);el('v2vop',vop);el('v2vs',vsys);
-  el('v2ra',ra);el('v2rs',rs);el('v2ip',ip);
-  // Sténose évaluée sur Vsys SEULEMENT si valeur dépasse plafond effort sain
+  setEl('v2s',sbp);setEl('v2d',dbp);setEl('v2m',map);setEl('v2h',hr);
+  setEl('v2ptt',ptt);setEl('v2vop',vop);setEl('v2vs',vsys);
+  setEl('v2ra',ra);setEl('v2rs',rs);setEl('v2ip',ip);
   const stenose=vsys>1.25;
-  const deg=vsys>2.30?'>70%':vsys>1.25?'50–70%':'< 50%';
-  el('v2deg',deg);el('v2vc',`${vsys} / 1.25`);
-  mc('mc2s',sbp>160,'alert');mc('mc2d',dbp>95,'alert');mc('mc2h',hr>150,'alert');
-  mc('mc2vs',vsys>=1.25,'alert',vsys>=1.10,'warn');
+  setEl('v2deg',vsys>2.30?'>70%':vsys>1.25?'50–70%':'< 50%');
+  setEl('v2vc',`${vsys} / 1.25`);
+  mc('mc2s',sbp>160,'alert',sbp>140,'warn');
+  mc('mc2d',dbp>100,'alert',dbp>90,'warn');
+  mc('mc2h',hr>160,'alert',hr>150,'warn');
+  mc('mc2vs',vsys>=1.25,'alert',vsys>=r.vsysPeak+0.02,'warn');
   const conc=document.getElementById('v2conc');
   if(conc){
     let badge,label;
     if(ip>0.85&&!stenose){badge='b-ok';label='Normal';}
     else if(ip>0.60&&!stenose){badge='b-lim';label='Limite';}
     else if(ip<0.60||vsys>=2.30){badge='b-alert';label='Sténose probable';}
-    else if(stenose){badge='b-lim';label='Suspicion — confirmer au repos';}
+    else if(stenose){badge='b-lim';label='Suspicion — confirmer repos';}
     else{badge='b-lim';label='Surveillance';}
     conc.innerHTML=`<span class="badge ${badge}">${label}</span>`;
   }
 }
 
-// ===== CALIBRATION =====
+// ===== DIAGNOSTIC SYNTHESE =====
+function buildDiag(){
+  if(activePanel!=='m2') return;
+  const r=R();
+  // Calcul stats sur les données complètes
+  const restIdx=Array.from({length:180},(_,i)=>i); // 0–3 min (180 pts)
+  const effIdx=Array.from({length:540},(_,i)=>i+180); // 3–12 min
+
+  const avg=(arr,idx)=>rnd(idx.reduce((s,i)=>s+arr[i],0)/idx.length);
+  const max=(arr,idx)=>rnd(Math.max(...idx.map(i=>arr[i])));
+  const min=(arr,idx)=>rnd(Math.min(...idx.map(i=>arr[i])));
+
+  const sbpRest=avg(SBP,restIdx), sbpPeak=max(SBP,effIdx);
+  const dbpRest=avg(DBP,restIdx), dbpMin=min(DBP,effIdx);
+  const hrRest=avg(HR,restIdx), hrPeak=max(HR,effIdx);
+  const mapRest=rnd(avg(DBP,restIdx)+(avg(SBP,restIdx)-avg(DBP,restIdx))/3);
+  const siRest=avg(SIarr,restIdx), siPeak=max(SIarr,effIdx);
+  const riRest=avg(RIarr,restIdx);
+  const ppRest=rnd(sbpRest-dbpRest);
+  const pttRest=avg(PTT,restIdx);
+  const vopRest=rnd(D/(pttRest/1000),2), vopPeak=rnd(D/(min(PTT,effIdx)/1000),2);
+  const ipRest=rnd(avg(RA,restIdx)*alpha+avg(RS,restIdx)*(1-alpha),2);
+  const ipEff=rnd(avg(RA,effIdx)*alpha+avg(RS,effIdx)*(1-alpha),2);
+  const ipMin=rnd(min(RA.map((_,i)=>alpha*RA[i]+(1-alpha)*RS[i]),[...restIdx,...effIdx]),2);
+  const raAvg=rnd(avg(RA,[...restIdx,...effIdx]),2);
+  const rsAvg=rnd(avg(RS,[...restIdx,...effIdx]),2);
+  const vsysRest=avg(VSYS,restIdx), vsysPeak=max(VSYS,effIdx), vsysMax=max(VSYS,[...restIdx,...effIdx]);
+  const stenose=vsysMax>1.25;
+  const stenose70=vsysMax>2.30;
+
+  // Remplissage tableau
+  const cl=(v,ok,warn)=>v<=ok?'ok':v<=warn?'warn':'alert';
+  setEl('dg-sbp-rest',`${Math.round(sbpRest)} mmHg`);
+  setEl('dg-sbp-peak',`${Math.round(sbpPeak)} mmHg`);
+  setEl('dg-dbp-rest',`${Math.round(dbpRest)} mmHg`);
+  setEl('dg-dbp-min',`${Math.round(dbpMin)} mmHg`);
+  setEl('dg-hr-rest',`${Math.round(hrRest)} bpm`);
+  setEl('dg-hr-peak',`${Math.round(hrPeak)} bpm`);
+  setEl('dg-map',`${Math.round(mapRest)} mmHg`);
+  setEl('dg-si-rest',`${siRest} m/s`);
+  setEl('dg-si-peak',`${siPeak} m/s`);
+  setEl('dg-ri',`${Math.round(riRest)} %`);
+  setEl('dg-pp',`${ppRest} mmHg`);
+  setEl('dg-vop-rest',`${vopRest} m/s`);
+  setEl('dg-vop-peak',`${vopPeak} m/s`);
+  setEl('dg-ptt',`${pttRest} ms`);
+  setEl('dg-ip-rest',`${ipRest}`);
+  setEl('dg-ip-eff',`${ipEff}`);
+  setEl('dg-ip-min',`${ipMin}`);
+  setEl('dg-ra',`${raAvg}`);
+  setEl('dg-rs',`${rsAvg}`);
+  setEl('dg-vs-rest',`${rnd(vsysRest,2)} m/s`);
+  setEl('dg-vs-peak',`${rnd(vsysPeak,2)} m/s`);
+  setEl('dg-vs-max',`${rnd(vsysMax,2)} m/s`);
+
+  // Coloration sténose
+  const seuilEl=document.getElementById('dg-seuil');
+  if(stenose70){seuilEl.textContent='⚠ Dépassement >70%';seuilEl.className='dv alert';}
+  else if(stenose){seuilEl.textContent='⚠ Dépassement 50–70%';seuilEl.className='dv warn';}
+  else{seuilEl.textContent='✓ Non dépassé';seuilEl.className='dv ok';}
+
+  // Score global
+  let score=0;
+  if(sbpRest>140) score+=2; else if(sbpRest>130) score+=1;
+  if(siRest>r.siRest+2) score+=2; else if(siRest>r.siRest+1) score+=1;
+  if(ipMin<0.60) score+=3; else if(ipMin<0.85) score+=1;
+  if(stenose70) score+=4; else if(stenose) score+=2;
+  if(ppRest>60) score+=1;
+
+  const concMain=document.getElementById('dg-conc-main');
+  const concDet=document.getElementById('dg-conc-detail');
+  const concReco=document.getElementById('dg-conc-reco');
+  setEl('dg-sex-label',r.label);
+
+  if(score<=1){
+    concMain.className='conc-main ok'; concMain.textContent='✓ Profil normal';
+    concDet.textContent=r.normConc+` PAS repos ${Math.round(sbpRest)} mmHg · SI ${siRest} m/s · VOP ${vopRest} m/s · IP ${ipRest} — tous dans les normes bibliographiques pour ${r.concSex}.`;
+    concReco.textContent='→ Recontrôle dans 12 mois. Calibration patch dans 15 jours. Aucun bilan complémentaire urgent.';
+  } else if(score<=3){
+    concMain.className='conc-main warn'; concMain.textContent='⚠ Paramètres limites — surveillance renforcée';
+    concDet.textContent=r.warnConc+` Valeurs observées : PAS repos ${Math.round(sbpRest)} mmHg · SI ${siRest} m/s · IP min ${ipMin} · Vsys max ${rnd(vsysMax,2)} m/s.`;
+    concReco.textContent='→ Recontrôle dans 3 mois. Bilan tensionnel ambulatoire (MAPA 24h). Consultation cardiovasculaire si persistance.';
+  } else {
+    concMain.className='conc-main alert'; concMain.textContent='🔴 Anomalie détectée — bilan complémentaire requis';
+    concDet.textContent=r.alertConc+` Valeurs critiques : PAS repos ${Math.round(sbpRest)} mmHg · SI ${siRest} m/s · IP min ${ipMin} · Vsys max ${rnd(vsysMax,2)} m/s${stenose?' (seuil NASCET dépassé)':''}.`;
+    concReco.textContent='→ Doppler écho carotidien de confirmation urgent. Score SCORE2 cardiovasculaire. MAPA 24h. Consultation cardiologie ± neurologie vasculaire.';
+  }
+}
+
+// ===== CALIB =====
 function applyCalib(){
-  sbp0=+document.getElementById('s1').value||118;
-  dbp0=+document.getElementById('d1').value||72;
-  hr0=+document.getElementById('h1').value||64;
-  ht0=+document.getElementById('ht1').value||165;
+  sbp0=+document.getElementById('s1').value||R().sbp0;
+  dbp0=+document.getElementById('d1').value||R().dbp0;
+  hr0=+document.getElementById('h1').value||R().hr0;
+  ht0=+document.getElementById('ht1').value||R().ht0;
   generateAll(); resetSim();
 }
 function applyCalib2(){
-  sbp0=+document.getElementById('s2').value||118;
-  dbp0=+document.getElementById('d2').value||72;
-  hr0=+document.getElementById('h2').value||64;
-  diam0=+document.getElementById('diam').value||7.5;
+  sbp0=+document.getElementById('s2').value||R().sbp0;
+  dbp0=+document.getElementById('d2').value||R().dbp0;
+  hr0=+document.getElementById('h2').value||R().hr0;
+  diam0=+document.getElementById('diam').value||R().diam;
   generateAll(); resetSim();
 }
 function updateAlpha(v){
   alpha=parseInt(v)/100;
-  document.getElementById('lbl-a').textContent=alpha.toFixed(2);
-  document.getElementById('lbl-b').textContent=(1-alpha).toFixed(2);
-  document.getElementById('formula-live').textContent=`IP = ${alpha.toFixed(2)} · RA + ${(1-alpha).toFixed(2)} · RS`;
+  setEl('lbl-a',alpha.toFixed(2)); setEl('lbl-b',(1-alpha).toFixed(2));
+  setEl('formula-live2',`IP = ${alpha.toFixed(2)}·RA + ${(1-alpha).toFixed(2)}·RS`);
 }
 
 // ===== TABS =====
@@ -722,10 +873,17 @@ function sw(id){
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.getElementById('panel-'+id).classList.add('active');
 }
+function updateCursors(){
+  const pct=`${Math.min(98,(tick/WINDOW)*100)}%`;
+  ['cur1p','cur1b','cur1ta','cur1hr','cur1si','cur2d','cur2ptt','cur2ta','cur2vs','cur2ip'].forEach(id=>{
+    const e=document.getElementById(id);if(e)e.style.left=pct;
+  });
+}
 
 // ===== INIT =====
 generateAll();
 initCharts();
+setEl('dg-conc-main','En attente de fin d\'acquisition (12 min)...');
 </script>
 </body>
 </html>
