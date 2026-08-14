@@ -598,8 +598,16 @@ function generateAll(){
     const vsysv=t<=3?r.vsysRest:r.vsysRest+vsysDrop*(1-Math.exp(-(t-3)/2.5))+(seed(i+6)-.5)*0.022;
     const a1=amp, a2=amp*(0.84-0.04*p+(seed(i+7)-.5)*0.015);
     const s1=amp*cyc*0.35, s2=s1*(0.80-0.03*p+(seed(i+8)-.5)*0.015);
-    const dtFrac=0.13+0.06*p;
-    const si=rnd((ht0/100)/(dtFrac*cyc),2);
+    // Stiffness Index = taille(m) / délai systole→dicrote(s)
+    // Le délai dicrote est ABSOLU (~150-200ms au repos, ~120-160ms à l'effort)
+    // PAS une fraction du cycle cardiaque (sinon SI explose à FC élevée)
+    // Valeurs de référence : SI repos 6-9 m/s, effort légère hausse max +2 m/s
+    const dtAbs = (0.195 - 0.035*p) + (seed(i+9)-.5)*0.01; // délai absolu en secondes
+    const siRaw = (ht0/100) / dtAbs;
+    // Plafonner aux valeurs physiologiques selon l'âge et le sexe
+    const siMin = r.siBase - 1.5;
+    const siMax2 = r.siBase + 3.0 + p*1.5; // légère augmentation à l'effort
+    const si = rnd(Math.min(siMax2, Math.max(siMin, siRaw + (seed(i+11)-.5)*0.3)), 2);
     const ri=rnd(Math.min(98,(a2/a1)*100+2*(seed(i+9)-.5)),1);
     SBP.push(rnd(sbp)); DBP.push(rnd(dbp)); HR.push(rnd(hr));
     PIEZO.push(rnd(pz+(seed(i+10)-.5)*0.02,3)); BPW.push(rnd(bpv,1));
@@ -689,7 +697,7 @@ function simTick(){
     stopSim();
     // Calculer le diagnostic TOUJOURS, quel que soit l'onglet actif
     setTimeout(()=>{
-      setTimeout(buildDiag, 600);
+      buildDiag();
       // Si on est sur M1, switcher automatiquement sur M2 pour afficher le rapport
       if(activePanel==='m1'){
         sw('m2');
