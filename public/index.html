@@ -463,6 +463,7 @@ main{padding:12px 16px;}
 const TOTAL=720, D=0.050, WINDOW=120;
 let sex='F', age=40, alpha=0.50;
 let sbp0=118,dbp0=72,hr0=68,ht0=165,diam0=6.1;
+let calibLocked=false; // true après premier clic "Appliquer"
 let playing=false,tick=0,speed=12,animId=null,lastTs=null,accumMs=0;
 let activePanel='m1';
 let SBP,DBP,HR,PIEZO,BPW,PTT,VSYS,RA,RS,SIarr,RIarr;
@@ -722,6 +723,7 @@ function resetSim(){
   document.getElementById('elapsed').textContent='0:00 / 12:00';
   document.getElementById('prog-fill').style.width='0%';
   resetMetrics(); initCharts();
+  // NE PAS réinitialiser calibLocked ici — l'utilisateur garde sa calibration
 }
 function setSpeed(v){speed=parseInt(v);}
 
@@ -739,13 +741,18 @@ function setAge(v){
 }
 function applyProfile(){
   const r=R();
-  sbp0=Math.round(r.sbp); dbp0=Math.round(r.dbp); hr0=Math.round(r.hr); ht0=r.ht; diam0=rnd(r.diam,1);
-  // update calib fields
-  ['s1','s2'].forEach(id=>{ const e=document.getElementById(id); if(e) e.value=sbp0; });
-  ['d1','d2'].forEach(id=>{ const e=document.getElementById(id); if(e) e.value=dbp0; });
-  ['h1','h2'].forEach(id=>{ const e=document.getElementById(id); if(e) e.value=hr0; });
-  const ht1=document.getElementById('ht1'); if(ht1) ht1.value=ht0;
-  const di=document.getElementById('diam'); if(di) di.value=diam0;
+  // Ne mettre à jour les valeurs de simulation QUE si l'utilisateur
+  // n'a pas encore saisi de calibration manuelle
+  if(!calibLocked){
+    sbp0=Math.round(r.sbp); dbp0=Math.round(r.dbp); hr0=Math.round(r.hr); ht0=r.ht; diam0=rnd(r.diam,1);
+    // Mettre à jour les champs de saisie seulement si pas encore verrouillés
+    ['s1','s2'].forEach(id=>{ const e=document.getElementById(id); if(e) e.value=sbp0; });
+    ['d1','d2'].forEach(id=>{ const e=document.getElementById(id); if(e) e.value=dbp0; });
+    ['h1','h2'].forEach(id=>{ const e=document.getElementById(id); if(e) e.value=hr0; });
+    const ht1=document.getElementById('ht1'); if(ht1) ht1.value=ht0;
+    const di=document.getElementById('diam'); if(di) di.value=diam0;
+  }
+  // Toujours mettre à jour la taille pour le SI (morphologie, pas calibration TA)
   // update ref notes
   sEl('ref-note-m1',r.refNote); sEl('ref-note-m2',r.refNote);
   sEl('fcmax-info',r.fcmaxInfo);
@@ -928,17 +935,49 @@ function buildDiag(){
 
 // ========== CALIB ==========
 function applyCalib(){
+  // L'utilisateur a saisi ses valeurs réelles → verrouiller
+  calibLocked=true;
   sbp0=+document.getElementById('s1').value||sbp0;
   dbp0=+document.getElementById('d1').value||dbp0;
   hr0=+document.getElementById('h1').value||hr0;
   ht0=+document.getElementById('ht1').value||ht0;
+  // Synchroniser les champs M2
+  ['s2','d2','h2'].forEach((id,i)=>{
+    const e=document.getElementById(id);
+    if(e) e.value=[sbp0,dbp0,hr0][i];
+  });
+  // Avertissement visuel si PAS repos hors norme
+  const r=R();
+  const note=document.getElementById('ref-note-m1');
+  if(note && sbp0>140){
+    note.style.borderColor='var(--yellow)';
+    note.textContent=`⚠ PAS calibrée ${sbp0} mmHg > 140 mmHg (seuil HTA) — simulation démarrera à ${sbp0} mmHg. Ref biblio: ${Math.round(r.sbp)} mmHg pour ${r.label}.`;
+  } else if(note){
+    note.style.borderColor='var(--blue)';
+    note.textContent=r.refNote;
+  }
   generateAll(); resetSim();
 }
 function applyCalib2(){
+  calibLocked=true;
   sbp0=+document.getElementById('s2').value||sbp0;
   dbp0=+document.getElementById('d2').value||dbp0;
   hr0=+document.getElementById('h2').value||hr0;
   diam0=+document.getElementById('diam').value||diam0;
+  // Synchroniser M1
+  ['s1','d1','h1'].forEach((id,i)=>{
+    const e=document.getElementById(id);
+    if(e) e.value=[sbp0,dbp0,hr0][i];
+  });
+  const r=R();
+  const note=document.getElementById('ref-note-m2');
+  if(note && sbp0>140){
+    note.style.borderColor='var(--yellow)';
+    note.textContent=`⚠ PAS calibrée ${sbp0} mmHg > 140 mmHg — simulation démarrera à ${sbp0} mmHg. Ref biblio: ${Math.round(r.sbp)} mmHg pour ${r.label}.`;
+  } else if(note){
+    note.style.borderColor='var(--blue)';
+    note.textContent=r.refNote;
+  }
   generateAll(); resetSim();
 }
 function updateAlpha(v){
