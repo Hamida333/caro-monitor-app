@@ -609,6 +609,8 @@ function generateAll(){
     if(pos<0.10) bpv=dbp+(sbp-dbp)*Math.sin(Math.PI*pos/0.10);
     else if(pos<0.14) bpv=sbp*0.85+dbp*0.15;
     else bpv=dbp+(sbp*0.15)*Math.exp(-(pos-0.14)*6);
+    // Degré de sténose normalisé — déclaré ICI avant toute utilisation
+    const st=stenosePct/100;
     const pttDrop=r.pttRest-r.pttEff;
     // Effet sténose sur PTT : allongement par réduction de VOP post-sténose (paroi plus rigide)
     const pttSten = st*r.pttRest*0.35; // +35% max à 90% sténose
@@ -617,7 +619,6 @@ function generateAll(){
     const vsysBase=t<=3?r.vsysRest:r.vsysRest+vsysDrop*(1-Math.exp(-(t-3)/2.5));
     // Effet sténose sur Vsys : augmentation selon loi de Bernoulli (critère NASCET)
     // 0%→ normal · 50%→ +0.5 m/s · 70%→ +1.1 m/s · 90%→ +2.0 m/s
-    const st=stenosePct/100;
     const vsysSten = st>0 ? vsysBase*(1+st*2.8*(1+st)) : 0; // accélération post-sténose
     const vsysv = vsysBase + vsysSten + (seed(i+6)-.5)*0.022;
 
