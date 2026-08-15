@@ -624,14 +624,23 @@ function generateAll(){
     // prématurée qu'entraînait une multiplication par vsysBase, qui faisait dépasser le seuil
     // des 70% dès 65% de sténose simulée)
     const vsysSten = st>0 ? 4.4*st*st*st : 0;
-    const vsysv = vsysBase + vsysSten + (seed(i+6)-.5)*0.022;
+    let vsysSum = vsysBase + vsysSten;
+    // Plancher aligné sur les seuils NASCET affichés : garantit que la palier saisi (50%/70%)
+    // est bien franchi quel que soit le Vsys de base du profil (jeune / ♀, dont la base est plus
+    // basse) — sans ce plancher, un patient jeune réglé pile à 50% ou 70% pouvait rester classé
+    // en dessous du seuil correspondant.
+    if (st>=0.70) vsysSum = Math.max(vsysSum, 2.35);
+    else if (st>=0.50) vsysSum = Math.max(vsysSum, 1.30);
+    const vsysv = vsysSum + (seed(i+6)-.5)*0.022;
 
     // Effet sténose sur amplitude distale (C2) : réduction par atténuation post-sténose
     // 0%→ normal · 50%→ -15% (repos) · 70%→ -30% (repos) · 90%→ -55% (repos)
     // L'atténuation dépend aussi de la phase (p) : la turbulence post-sténotique s'accentue
     // avec le débit à l'effort, donc IP repos / IP effort / IP minimum doivent diverger,
     // pas rester quasi identiques comme avec un facteur constant.
-    const ampAtten = 1 - st*(0.6+0.3*p)*(1+st*0.3);
+    // Plancher à 0.05 : au-delà de ~88% de sténose en phase d'effort (p=1), la formule brute
+    // devenait négative et inversait le signe de l'amplitude/surface C2 — non physiologique.
+    const ampAtten = Math.max(0.05, 1 - st*(0.6+0.3*p)*(1+st*0.3));
     const a1=amp;
     const a2=amp*(0.84-0.04*p+(seed(i+7)-.5)*0.015)*ampAtten;
     // Surfaces sous courbe proportionnelles aux amplitudes
