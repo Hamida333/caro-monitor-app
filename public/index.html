@@ -520,9 +520,10 @@ function getRef(s, a){
   // VOP locale (D=50mm) : +0.09 m/s/an, homme +0.5 de base
   const vopBase = isMale ? 6.5 + ageOffset*0.09 : 5.8 + ageOffset*0.09;
 
-  // PTT repos = D/VOP
+  // PTT repos = D/VOP · effort : VOP augmente de ~20% max, plafond 10.5 m/s physiologique
   const pttRest = D/vopBase*1000;
-  const pttEff  = D/(vopBase*1.45)*1000;
+  const vopEff = Math.min(10.5, vopBase*1.20); // +20% effort max, plafond 10.5 m/s
+  const pttEff  = D/vopEff*1000;
 
   // Vsys CCA : repos 0.70♀ / 0.85♂, effort légère augmentation, plafond physiologique
   const vsysRest = isMale ? 0.85 + ageOffset*0.005 : 0.70 + ageOffset*0.004;
