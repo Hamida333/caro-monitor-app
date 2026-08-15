@@ -617,9 +617,10 @@ function generateAll(){
     const pttv=t<=3?r.pttRest+pttSten:r.pttRest+pttSten-pttDrop*(1-Math.exp(-(t-3)/2))+(seed(i+5)-.5)*0.5;
     const vsysDrop=r.vsysPeak-r.vsysRest;
     const vsysBase=t<=3?r.vsysRest:r.vsysRest+vsysDrop*(1-Math.exp(-(t-3)/2.5));
-    // Effet sténose sur Vsys : augmentation selon loi de Bernoulli (critère NASCET)
-    // 0%→ normal · 50%→ +0.5 m/s · 70%→ +1.1 m/s · 90%→ +2.0 m/s
-    const vsysSten = st>0 ? vsysBase*(1+st*2.8*(1+st)) : 0; // accélération post-sténose
+    // Vsys post-sténose : formule calibrée sur critères NASCET
+    // Seuils cibles : 0%→normal · 50%→+0.55 m/s (dépasse 1.25) · 70%→+1.50 m/s (dépasse 2.30) · 90%→+3.0 m/s
+    // Formule : ΔVsys = st² × 5.5 × vsysBase (loi de Bernoulli simplifiée)
+    const vsysSten = st>0 ? st*st*5.5*vsysBase : 0;
     const vsysv = vsysBase + vsysSten + (seed(i+6)-.5)*0.022;
 
     // Effet sténose sur amplitude distale (C2) : réduction par atténuation post-sténose
@@ -690,7 +691,7 @@ function mkChart(id,datasets,ymin,ymax,unit,refs){
 function initCharts(){
   const r=R();
   const siMax=Math.ceil(r.siBase+4), siAlert=r.siBase+2.5;
-  const vsMax=Math.min(2.8, r.vsysPeak+0.6);
+  const vsMax=stenosePct>=70?4.5:stenosePct>=50?2.8:Math.min(2.0, r.vsysPeak+0.6);
   mkChart('c1p',[{label:'Piézo µV',borderColor:'#58a6ff',...th}],-0.92,0.92,' µV');
   mkChart('c1b',[{label:'ODP mmHg',borderColor:'#f78166',...th}],50,Math.ceil(r.sbpPeak+15),' mmHg');
   mkChart('c1ta',[{label:'PAS',borderColor:'#56d364',...th},{label:'PAD',borderColor:'#58a6ff',...th}],40,Math.ceil(r.sbpPeak+20),' mmHg');
