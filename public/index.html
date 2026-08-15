@@ -990,7 +990,7 @@ function buildDiag(){
     ['PAS repos',`${Math.round(sbpR)} mmHg`,`<${age>=60?150:140} mmHg`,Math.round(sbpR)<=140?'ok':Math.round(sbpR)<=160?'warn':'alert'],
     ['PAD repos',`${Math.round(dbpR)} mmHg`,'<90 mmHg',Math.round(dbpR)<=90?'ok':Math.round(dbpR)<=100?'warn':'alert'],
     ['FC repos',`${Math.round(hrR)} bpm`,'60–80 bpm',hrR<=80?'ok':hrR<=90?'warn':'alert'],
-    ['FC pic (% FCmax)',`${Math.round(hrP/r.hrMax*100)}%`,'85–95% attendu',hrP/r.hrMax>=0.8?'ok':hrP/r.hrMax>=0.7?'warn':'alert'],
+    ['FC pic (% FCmax)',`${Math.round(hrP/r.hrMax*100)}%`,'85–95% attendu',(hrP/r.hrMax>=0.85&&hrP/r.hrMax<=0.95)?'ok':(hrP/r.hrMax>=0.80&&hrP/r.hrMax<=1.00)?'warn':'alert'],
     ['SI repos',`${siR} m/s`,r.siNorm+' m/s',siOk?'ok':siWarn?'warn':'alert'],
     ['VOP locale',`${vopR} m/s`,r.vopNorm+' m/s',vopOk?'ok':'warn'],
     ['Pression pulsée',`${ppR} mmHg`,`<${Math.round(r.ppNorm+15)} mmHg`,ppOk?'ok':'warn'],
