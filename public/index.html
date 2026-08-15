@@ -215,6 +215,18 @@ main{padding:12px 16px;}
     <span class="age-info">ans</span>
   </div>
   <span id="fcmax-info" style="font-size:10px;color:var(--text2);">FCmax: 180 bpm</span>
+
+  <!-- STÉNOSE SIMULÉE -->
+  <div style="display:flex;align-items:center;gap:6px;background:rgba(248,81,73,.08);
+    border:1px solid rgba(248,81,73,.25);border-radius:6px;padding:4px 10px;">
+    <span style="font-size:10px;color:var(--red);font-weight:600;">⚠ Sténose :</span>
+    <input type="range" id="sten-sl" min="0" max="90" value="0" step="5"
+      style="width:80px;accent-color:#f85149;"
+      oninput="setStenosis(this.value)">
+    <span id="sten-val" style="font-size:12px;font-weight:700;color:var(--red);min-width:34px;">0%</span>
+    <span id="sten-grade" style="font-size:10px;color:var(--text2);">Normal</span>
+  </div>
+
   <button class="btn-ctrl btn-start" id="btn-diag" onclick="buildDiag();sw('m2');setTimeout(()=>{document.getElementById('diag-panel').scrollIntoView({behavior:'smooth'})},200);" style="margin-left:auto;background:rgba(86,211,100,.15);color:var(--green);border-color:rgba(86,211,100,.3);">
     📋 Rapport diagnostic
   </button>
@@ -474,7 +486,8 @@ main{padding:12px 16px;}
 const TOTAL=721, D=0.050, WINDOW=120; // 721 pour inclure le point 12:00 exact
 let sex='F', age=40, alpha=0.50;
 let sbp0=118,dbp0=72,hr0=68,ht0=165,diam0=6.1;
-let calibLocked=false; // true après premier clic "Appliquer"
+let calibLocked=false;
+let stenosePct=0; // 0–90 % — degré de sténose carotidienne simulée
 let playing=false,tick=0,speed=12,animId=null,lastTs=null,accumMs=0;
 let activePanel='m1';
 let SBP,DBP,HR,PIEZO,BPW,PTT,VSYS,RA,RS,SIarr,RIarr;
@@ -597,21 +610,32 @@ function generateAll(){
     else if(pos<0.14) bpv=sbp*0.85+dbp*0.15;
     else bpv=dbp+(sbp*0.15)*Math.exp(-(pos-0.14)*6);
     const pttDrop=r.pttRest-r.pttEff;
-    const pttv=t<=3?r.pttRest:r.pttRest-pttDrop*(1-Math.exp(-(t-3)/2))+(seed(i+5)-.5)*0.5;
+    // Effet sténose sur PTT : allongement par réduction de VOP post-sténose (paroi plus rigide)
+    const pttSten = st*r.pttRest*0.35; // +35% max à 90% sténose
+    const pttv=t<=3?r.pttRest+pttSten:r.pttRest+pttSten-pttDrop*(1-Math.exp(-(t-3)/2))+(seed(i+5)-.5)*0.5;
     const vsysDrop=r.vsysPeak-r.vsysRest;
-    const vsysv=t<=3?r.vsysRest:r.vsysRest+vsysDrop*(1-Math.exp(-(t-3)/2.5))+(seed(i+6)-.5)*0.022;
-    const a1=amp, a2=amp*(0.84-0.04*p+(seed(i+7)-.5)*0.015);
-    const s1=amp*cyc*0.35, s2=s1*(0.80-0.03*p+(seed(i+8)-.5)*0.015);
+    const vsysBase=t<=3?r.vsysRest:r.vsysRest+vsysDrop*(1-Math.exp(-(t-3)/2.5));
+    // Effet sténose sur Vsys : augmentation selon loi de Bernoulli (critère NASCET)
+    // 0%→ normal · 50%→ +0.5 m/s · 70%→ +1.1 m/s · 90%→ +2.0 m/s
+    const st=stenosePct/100;
+    const vsysSten = st>0 ? vsysBase*(1+st*2.8*(1+st)) : 0; // accélération post-sténose
+    const vsysv = vsysBase + vsysSten + (seed(i+6)-.5)*0.022;
+
+    // Effet sténose sur amplitude distale (C2) : réduction par atténuation post-sténose
+    // 0%→ normal · 50%→ -15% · 70%→ -30% · 90%→ -55%
+    const ampAtten = 1 - st*0.6*(1+st*0.3);
+    const a1=amp;
+    const a2=amp*(0.84-0.04*p+(seed(i+7)-.5)*0.015)*ampAtten;
+    // Surfaces sous courbe proportionnelles aux amplitudes
+    const s1=amp*cyc*0.35, s2=s1*(0.80-0.03*p+(seed(i+8)-.5)*0.015)*ampAtten;
     // Stiffness Index = taille(m) / délai systole→dicrote(s)
-    // Le délai dicrote est ABSOLU (~150-200ms au repos, ~120-160ms à l'effort)
-    // PAS une fraction du cycle cardiaque (sinon SI explose à FC élevée)
-    // Valeurs de référence : SI repos 6-9 m/s, effort légère hausse max +2 m/s
-    const dtAbs = (0.195 - 0.035*p) + (seed(i+9)-.5)*0.01; // délai absolu en secondes
+    const dtAbs = (0.195 - 0.035*p) + (seed(i+9)-.5)*0.01;
     const siRaw = (ht0/100) / dtAbs;
-    // Plafonner aux valeurs physiologiques selon l'âge et le sexe
     const siMin = r.siBase - 1.5;
-    const siMax2 = r.siBase + 3.0 + p*1.5; // légère augmentation à l'effort
-    const si = rnd(Math.min(siMax2, Math.max(siMin, siRaw + (seed(i+11)-.5)*0.3)), 2);
+    // Sténose → rigidité pariétale augmentée (calcification plaque) → SI plus élevé
+    const siStenBonus = st * 4.5; // +4.5 m/s max à 90% sténose
+    const siMax2 = r.siBase + 3.0 + p*1.5 + siStenBonus;
+    const si = rnd(Math.min(siMax2, Math.max(siMin, siRaw + siStenBonus*0.7 + (seed(i+11)-.5)*0.3)), 2);
     const ri=rnd(Math.min(98,(a2/a1)*100+2*(seed(i+9)-.5)),1);
     SBP.push(rnd(sbp)); DBP.push(rnd(dbp)); HR.push(rnd(hr));
     PIEZO.push(rnd(pz+(seed(i+10)-.5)*0.02,3)); BPW.push(rnd(bpv,1));
@@ -772,6 +796,31 @@ function resetSim(){
 function setSpeed(v){speed=parseInt(v);}
 
 // ========== SEXE & AGE ==========
+function setStenosis(v){
+  stenosePct=parseInt(v);
+  const el=document.getElementById('sten-val');
+  const gr=document.getElementById('sten-grade');
+  const sl=document.getElementById('sten-sl');
+  if(el) el.textContent=stenosePct+'%';
+  // Grade NASCET
+  let grade,col;
+  if(stenosePct===0){grade='Normal';col='var(--text2)';}
+  else if(stenosePct<30){grade='Minime (<30%)';col='var(--green)';}
+  else if(stenosePct<50){grade='Modérée (30–49%)';col='var(--yellow)';}
+  else if(stenosePct<70){grade='Significative (50–69%)';col='var(--orange)';}
+  else if(stenosePct<80){grade='Sévère (70–79%)';col='var(--red)';}
+  else if(stenosePct<90){grade='Critique (80–89%)';col='var(--red)';}
+  else{grade='Sub-occlusion (90%)';col='var(--red)';}
+  if(gr){gr.textContent=grade;gr.style.color=col;}
+  // Clignotement si sténose significative
+  const box=sl?sl.parentElement:null;
+  if(box){
+    box.style.background=stenosePct>=50?'rgba(248,81,73,.18)':'rgba(248,81,73,.08)';
+    box.style.borderColor=stenosePct>=50?'rgba(248,81,73,.6)':'rgba(248,81,73,.25)';
+  }
+  gen(); resetSim();
+}
+
 function setSex(s){
   sex=s;
   document.getElementById('btn-f').className='sex-btn'+(s==='F'?' af':'');
@@ -963,6 +1012,16 @@ function buildDiag(){
     ? ` À ${age} ans, la VOP normale est ${r.vopNorm} m/s — une valeur élevée est un marqueur de risque CV indépendant. `
     : '';
 
+  // Note sténose simulée
+  const stenNote = stenosePct>0 ? ` 🔴 STÉNOSE SIMULÉE ${stenosePct}% (${
+    stenosePct<30?'minime':stenosePct<50?'modérée':stenosePct<70?'significative ≥50% — indication bilan':
+    stenosePct<80?'sévère 70–79% — indication chirurgicale à discuter':'critique ≥80% — indication chirurgicale urgente'
+  }) — Vsys ${rnd(vsM,2)} m/s · IP min ${ipM} · SI ${siR} m/s augmenté par rigidité plaque. ` : '';
+
+  // Ajuster le score si sténose simulée significative
+  if(stenosePct>=50) score=Math.max(score,5);
+  else if(stenosePct>=30) score=Math.max(score,3);
+
   const cm=document.getElementById('dg-cm');
   const cd=document.getElementById('dg-cd');
   const cr=document.getElementById('dg-cr');
@@ -970,16 +1029,16 @@ function buildDiag(){
 
   if(score<=1){
     cm.className='cm ok';cm.textContent='✓ Profil cardiovasculaire normal';
-    cd.textContent=`${r.label} — tous les paramètres carotidiens sont dans les normes bibliographiques.${ageNote}PAS repos ${Math.round(sbpR)} mmHg · SI ${siR} m/s (ref ${r.siNorm}) · VOP ${vopR} m/s (ref ${r.vopNorm}) · IP ${ipM} · Vsys ${rnd(vsR,2)} m/s.`;
+    cd.textContent=`${r.label} — tous les paramètres carotidiens sont dans les normes bibliographiques.${ageNote}${stenNote}PAS repos ${Math.round(sbpR)} mmHg · SI ${siR} m/s (ref ${r.siNorm}) · VOP ${vopR} m/s · IP ${ipM} · Vsys ${rnd(vsR,2)} m/s.`;
     cr.textContent='→ Recontrôle dans 12 mois. Calibration patch dans 15 jours. Aucun bilan complémentaire urgent.';
   }else if(score<=4){
     cm.className='cm warn';cm.textContent='⚠ Paramètres limites — surveillance renforcée';
-    cd.textContent=`${r.label} — certains paramètres sont en zone limite.${ageNote}Valeurs : SI ${siR} m/s · VOP ${vopR} m/s · IP ${ipM} · Vsys max ${rnd(vsM,2)} m/s · PP ${ppR} mmHg.`;
-    cr.textContent='→ Recontrôle dans 3–6 mois. MAPA 24h si PAS > 130. Consultation cardiovasculaire recommandée. Bilan Doppler carotidien si IP < 0.80 persistant.';
+    cd.textContent=`${r.label} — certains paramètres en zone limite.${ageNote}${stenNote}SI ${siR} m/s · VOP ${vopR} m/s · IP ${ipM} · Vsys max ${rnd(vsM,2)} m/s · PP ${ppR} mmHg.`;
+    cr.textContent='→ Recontrôle dans 3–6 mois. MAPA 24h si PAS>130. Consultation cardiovasculaire. Bilan Doppler si IP<0.80.';
   }else{
-    cm.className='cm alert';cm.textContent='🔴 Anomalie significative — bilan complémentaire urgent';
-    cd.textContent=`${r.label} — plusieurs paramètres dépassent les normes bibliographiques pour cet âge et ce sexe.${ageNote}Valeurs critiques : SI ${siR} m/s · VOP ${vopR} m/s · IP min ${ipM}${vsM>1.25?' · Vsys '+rnd(vsM,2)+' m/s (seuil NASCET dépassé)':''}.`;
-    cr.textContent='→ Doppler écho carotidien en urgence. MAPA 24h. Score SCORE2 (ESC). Consultation cardiologie + neurologie vasculaire. Bilan biologique lipidique complet.';
+    cm.className='cm alert';cm.textContent='🔴 Anomalie significative — bilan urgent';
+    cd.textContent=`${r.label} — paramètres hors normes.${ageNote}${stenNote}Valeurs : SI ${siR} m/s · VOP ${vopR} m/s · IP min ${ipM}${vsM>1.25?' · Vsys '+rnd(vsM,2)+' m/s (seuil NASCET dépassé)':''}.`;
+    cr.textContent='→ Doppler écho carotidien urgent. MAPA 24h. SCORE2. Cardiologie + neurologie vasculaire.'+(stenosePct>=70?' ⚠ Avis chirurgie vasculaire (endartériectomie / stenting).':'');
   }
 }
 
