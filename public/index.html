@@ -653,7 +653,12 @@ function generateAll(){
     const siStenBonus = st * 4.5; // +4.5 m/s max à 90% sténose
     const siMax2 = r.siBase + 3.0 + p*1.5 + siStenBonus;
     const si = rnd(Math.min(siMax2, Math.max(siMin, siRaw + siStenBonus*0.7 + (seed(i+11)-.5)*0.3)), 2);
-    const ri=rnd(Math.min(98,(a2/a1)*100+2*(seed(i+9)-.5)),1);
+    // RI mono-capteur : rapport onde réfléchie (dicrote) / onde systolique, dérivé de LA MÊME
+    // courbe piézo (capteur C1 seul) — contrairement à l'ancien calcul (a2/a1), qui nécessitait
+    // le capteur distal C2 et n'a donc pas sa place dans le Modèle 1 « 1 capteur ».
+    // Physiologiquement, RI est lié à la rigidité artérielle : il AUGMENTE avec la sténose/rigidité
+    // (retour d'onde plus précoce et plus ample), à l'inverse de l'ancien calcul qui diminuait.
+    const ri=rnd(Math.min(95,Math.max(20, 52+(si-r.siBase)*10+(seed(i+9)-.5)*3)),1);
     SBP.push(rnd(sbp)); DBP.push(rnd(dbp)); HR.push(rnd(hr));
     PIEZO.push(rnd(pz+(seed(i+10)-.5)*0.02,3)); BPW.push(rnd(bpv,1));
     PTT.push(rnd(pttv,1)); VSYS.push(rnd(vsysv,3));
