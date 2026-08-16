@@ -920,9 +920,14 @@ function updateMetrics(i){
   sEl('v2s',sbp);sEl('v2d',dbp);sEl('v2m',Math.round(dbp+(sbp-dbp)/3));sEl('v2h',hr);
   sEl('v2ptt',ptt);sEl('v2vop',vop);sEl('v2vs',vsys);
   sEl('v2ra',ra);sEl('v2rs',rs);sEl('v2ip',ip);
-  const stenose=vsys>1.25;
-  sEl('v2deg',vsys>2.30?'>70%':vsys>1.25?'50–70%':'< 50%');
-  sEl('v2vc',`${vsys} / 1.25`);
+  // Degré de sténose (NASCET) : doit être évalué sur le Vsys AU REPOS, pas sur la valeur
+  // instantanée du curseur de lecture — sinon, une fois la phase d'effort atteinte, la hausse
+  // de débit normale (non spécifique à la sténose) fait basculer le badge vers un palier
+  // supérieur à celui réellement simulé (ex: 65% saisi affiché ">70%" en fin d'enregistrement).
+  const vsysReposAvg = rnd(VSYS.slice(0,180).reduce((s,v)=>s+v,0)/180, 2);
+  const stenose=vsysReposAvg>1.25;
+  sEl('v2deg',vsysReposAvg>2.30?'>70%':vsysReposAvg>1.25?'50–70%':'< 50%');
+  sEl('v2vc',`${vsysReposAvg} / 1.25`);
   mc('mc2s',sbp>160,'alert',sbp>140,'warn');
   mc('mc2d',dbp>100,'alert',dbp>90,'warn');
   mc('mc2h',hr>r.hrMax,'alert',hr>r.hrMax*0.9,'warn');
