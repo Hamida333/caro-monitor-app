@@ -279,10 +279,10 @@ main{padding:12px 16px;}
   <div class="li"><div class="ld" style="background:var(--orange)"></div>SI</div>
 </div>
 
-<div class="chart-card"><div class="ct">Signal piézoélectrique carotidien (µV)</div>
+<div class="chart-card"><div class="ct">Signal piézoélectrique carotidien (µV) — 6 dernières secondes</div>
   <div style="position:relative;"><canvas id="c1p" height="80"></canvas>
   <div class="chart-phase-cursor"></div><div class="chart-cursor" id="cur1p"></div></div></div>
-<div class="chart-card"><div class="ct">Onde de pouls calibrée (mmHg)</div>
+<div class="chart-card"><div class="ct">Onde de pouls calibrée (mmHg) — 6 dernières secondes</div>
   <div style="position:relative;"><canvas id="c1b" height="80"></canvas>
   <div class="chart-phase-cursor"></div><div class="chart-cursor" id="cur1b"></div></div></div>
 <div class="chart-card"><div class="ct">Tension artérielle continue — PAS / PAD (mmHg)</div>
@@ -491,7 +491,9 @@ let calibLocked=false;
 let stenosePct=0; // 0–90 % — degré de sténose carotidienne simulée
 let playing=false,tick=0,speed=12,animId=null,lastTs=null,accumMs=0;
 let activePanel='m1';
-let SBP,DBP,HR,PIEZO,BPW,PTT,VSYS,RA,RS,SIarr,RIarr;
+let SBP,DBP,HR,PIEZO,BPW,PTT,VSYS,RA,RS,SIarr,RIarr,PHASE;
+// Courbes d'onde (piézo, onde de pouls) : tracées à haute résolution sur les dernières secondes
+const WAVE_FS=80, WAVE_SEC=6, WAVE_N=WAVE_FS*WAVE_SEC;
 
 // ========== REFERENCES NORMATIVES PAR AGE ET SEXE ==========
 // Sources : Frontiers CVD 2026 (38M), ESH 2023, Krejza 2006, Asklepios, Brillante 2008
@@ -666,6 +668,9 @@ function generateAll(){
     RA.push(rnd(a2/a1,3)); RS.push(rnd(s2/s1,3));
     SIarr.push(si); RIarr.push(ri);
   }
+  // Phase cardiaque cumulée (en cycles) : permet de tracer une vraie onde de pouls entre deux points
+  PHASE=[0];
+  for(let i=0;i<TOTAL;i++) PHASE.push(PHASE[i]+HR[i]/60);
 }
 
 // ========== CHARTS ==========
@@ -709,18 +714,40 @@ function mkChart(id,datasets,ymin,ymax,unit,refs){
   el.parentElement.style.height=el.getAttribute('height')+'px';
 }
 
+function mkWave(id,datasets,ymin,ymax,unit){
+  const el=document.getElementById(id); if(!el)return;
+  if(charts[id])charts[id].destroy();
+  charts[id]=new Chart(el.getContext('2d'),{
+    type:'line',
+    data:{labels:Array.from({length:WAVE_N},(_,i)=>rnd(i/WAVE_FS,2)),datasets:datasets.map(d=>({...d,data:new Array(WAVE_N).fill(null)}))},
+    options:{responsive:true,maintainAspectRatio:false,animation:false,
+      plugins:{legend:{display:false},tooltip:{mode:'index',intersect:false,callbacks:{
+        title:it=>`${it[0].label} s`,
+        label:it=>`${it.dataset.label}: ${it.raw!=null?it.raw:'—'}${unit||''}`
+      }}},
+      scales:{
+        x:{type:'linear',min:0,max:WAVE_SEC,ticks:{stepSize:1,callback:v=>v+' s',font:{size:9}},grid:{color:'rgba(255,255,255,.04)'}},
+        y:{min:ymin,max:ymax,ticks:{font:{size:9},callback:v=>v+(unit||'')},grid:{color:'rgba(255,255,255,.04)'}}
+      }
+    }
+  });
+  el.parentElement.style.height=el.getAttribute('height')+'px';
+  // pas de curseur de lecture sur les courbes d'onde (fenêtre glissante)
+  el.parentElement.querySelectorAll('.chart-cursor,.chart-phase-cursor').forEach(e=>e.style.display='none');
+}
+
 function initCharts(){
   const r=R();
   const siMax=Math.ceil(r.siBase+4), siAlert=r.siBase+2.5;
   const vsMax=stenosePct>=70?4.5:stenosePct>=50?2.8:Math.min(2.0, r.vsysPeak+0.6);
-  mkChart('c1p',[{label:'Piézo µV',borderColor:'#58a6ff',...th}],-0.92,0.92,' µV');
-  mkChart('c1b',[{label:'ODP mmHg',borderColor:'#f78166',...th}],50,Math.ceil(r.sbpPeak+15),' mmHg');
+  mkWave('c1p',[{label:'Piézo µV',borderColor:'#58a6ff',...th}],-0.92,0.92,' µV');
+  mkWave('c1b',[{label:'ODP mmHg',borderColor:'#f78166',...th}],50,Math.ceil(r.sbpPeak+15),' mmHg');
   mkChart('c1ta',[{label:'PAS',borderColor:'#56d364',...th},{label:'PAD',borderColor:'#58a6ff',...th}],40,Math.ceil(r.sbpPeak+20),' mmHg');
   mkChart('c1hr',[{label:'FC',borderColor:'#bc8cff',...th}],40,Math.ceil(r.hrPeak+15),' bpm',
     [{v:r.hrMax,c:'#f85149',l:`FCmax ${r.hrMax}`},{v:r.hrMax*0.85,c:'#e3b341',l:'85% FCmax'}]);
   mkChart('c1si',[{label:'SI',borderColor:'#f78166',...th}],3,siMax,' m/s',
     [{v:r.siBase,c:'#58a6ff',l:`Norm ${r.siBase.toFixed(1)}`},{v:siAlert,c:'#f85149',l:'Alerte'}]);
-  mkChart('c2d',[{label:'C1',borderColor:'#58a6ff',...th},{label:'C2',borderColor:'#f78166',borderDash:[4,3],...th}],-0.92,0.92,' µV');
+  mkWave('c2d',[{label:'C1',borderColor:'#58a6ff',...th},{label:'C2',borderColor:'#f78166',borderDash:[4,3],...th}],-0.92,0.92,' µV');
   mkChart('c2ptt',[{label:'PTT ms',borderColor:'#39d353',...th}],3,Math.ceil(r.pttRest+3),' ms');
   mkChart('c2ta',[{label:'PAS',borderColor:'#56d364',...th},{label:'PAD',borderColor:'#58a6ff',...th}],40,Math.ceil(r.sbpPeak+20),' mmHg');
   mkChart('c2vs',[{label:'Vsys',borderColor:'#39d353',...th}],0.3,vsMax,' m/s',
@@ -732,10 +759,33 @@ function initCharts(){
 function pushPoint(id,di,val){
   const ch=charts[id]; if(!ch)return;
   const ds=ch.data.datasets[di];
-  ds.data.push(val); if(ds.data.length>WINDOW) ds.data.shift();
+  // Au début, remplir depuis la gauche (le curseur démarre à gauche) ; ensuite fenêtre glissante
+  if(tick<WINDOW){ ds.data[tick]=val; } else { ds.data.push(val); if(ds.data.length>WINDOW) ds.data.shift(); }
   const t0=Math.max(0,(tick-WINDOW)/60);
   ch.data.labels.forEach((_,i,a)=>a[i]=rnd(t0+i/60));
   ch.options.scales.x.min=rnd(t0); ch.options.scales.x.max=rnd(t0+WINDOW/60);
+}
+function waveAt(i,k){
+  const tau=k/WAVE_FS;
+  const pos=(PHASE[i]+tau*HR[i]/60)%1;
+  const amp=0.25+0.42*ph(i/60);
+  const sbp=SBP[i]+(SBP[Math.min(i+1,TOTAL-1)]-SBP[i])*tau;
+  const dbp=DBP[i]+(DBP[Math.min(i+1,TOTAL-1)]-DBP[i])*tau;
+  let pz,bp;
+  if(pos<0.10) pz=amp*Math.sin(Math.PI*pos/0.10);
+  else if(pos<0.14) pz=amp*0.32*Math.sin(Math.PI*(pos-0.10)/0.04);
+  else pz=-amp*0.08*Math.exp(-(pos-0.20)*8);
+  if(pos<0.10) bp=dbp+(sbp-dbp)*Math.sin(Math.PI*pos/0.10);
+  else if(pos<0.14) bp=sbp*0.85+dbp*0.15;
+  else bp=dbp+(sbp*0.15)*Math.exp(-(pos-0.14)*6);
+  const nz=(seed(i*WAVE_FS+k+10)-.5)*0.02;
+  return {pz:rnd(pz+nz,3), bp:rnd(bp,1)};
+}
+function pushWave(id,di,fn){
+  const ch=charts[id]; if(!ch)return;
+  const ds=ch.data.datasets[di];
+  for(let k=0;k<WAVE_FS;k++) ds.data.push(fn(k));
+  if(ds.data.length>WAVE_N) ds.data.splice(0,ds.data.length-WAVE_N);
 }
 function redrawAll(){
   const ids=activePanel==='m1'?['c1p','c1b','c1ta','c1hr','c1si']:['c2d','c2ptt','c2ta','c2vs','c2ip'];
@@ -766,12 +816,12 @@ function simTick(){
   }
   const t=tick/60;
   if(activePanel==='m1'){
-    pushPoint('c1p',0,PIEZO[tick]); pushPoint('c1b',0,BPW[tick]);
+    pushWave('c1p',0,k=>waveAt(tick,k).pz); pushWave('c1b',0,k=>waveAt(tick,k).bp);
     pushPoint('c1ta',0,SBP[tick]); pushPoint('c1ta',1,DBP[tick]);
     pushPoint('c1hr',0,HR[tick]); pushPoint('c1si',0,SIarr[tick]);
   } else {
-    const p2=rnd(PIEZO[tick]*RA[tick]*0.97+(seed(tick+99)-.5)*0.01,3);
-    pushPoint('c2d',0,PIEZO[tick]); pushPoint('c2d',1,p2);
+    pushWave('c2d',0,k=>waveAt(tick,k).pz);
+    pushWave('c2d',1,k=>rnd(waveAt(tick,k).pz*RA[tick]*0.97+(seed(tick*WAVE_FS+k+99)-.5)*0.01,3));
     pushPoint('c2ptt',0,PTT[tick]);
     pushPoint('c2ta',0,SBP[tick]); pushPoint('c2ta',1,DBP[tick]);
     pushPoint('c2vs',0,VSYS[tick]);
@@ -1142,4 +1192,4 @@ applyProfile();
 sEl('dg-cm','En attente de fin d\'acquisition (12 min)...');
 </script>
 </body>
-</html>
+</html>
